@@ -3,12 +3,13 @@ class Ganho{
         this.id = id 
         this.usuarioId = usuarioId
         this.valor = valor
-        this.data = data        // data em que foi ganho
+        this.data = data               // data em que foi ganho
         this.categoria = categoria     // no que foi gasto
         this.tipo = tipo               // se é fixo ou variável
         this.repeticao = repeticao     // semanal, mensal, null
     }
 
+    
 
 }
 
