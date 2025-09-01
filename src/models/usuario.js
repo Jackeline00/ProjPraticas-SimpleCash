@@ -1,12 +1,12 @@
 class Usuario {
 
-    constructor(id, nome, senha, email, dataCriacao, saldoDaConta){
-        this.id = id
+    constructor(idUsuario, nome, senha, email, dataCriacao, saldoDaConta){
+        this.id = idUsuario
         this.nome = nome
         this.senha = senha
         this.email = email
         this.dataCriacao = dataCriacao   // data em que a conta foi criada
-        this.saldoDaConta = saldoDaConta // valor que existe na conta, sem contar a poupança
+        this.saldoTotal = saldoDaConta // valor que existe na conta, sem contar a poupança
     }
 
     verificarSenha(senhaDigitada){
@@ -17,6 +17,15 @@ class Usuario {
         if(this.senha === senhaAntiga)
             this.senha = novaSenha; 
     }
+
+    editarDados(){
+
+    }
+
+    excluirConta(){
+
+    }
+
 
 }
 

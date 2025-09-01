@@ -1,7 +1,7 @@
 class Ganho{
-    constructor(id, usuarioId, valor, data, categoria, tipo, repeticao){
-        this.id = id 
-        this.usuarioId = usuarioId
+    constructor(id, idUsuario, valor, data, categoria, tipo, repeticao){
+        this.idGanho = id 
+        this.idUsuario = idUsuario
         this.valor = valor
         this.data = data               // data em que foi ganho
         this.categoria = categoria     // no que foi gasto
@@ -9,7 +9,6 @@ class Ganho{
         this.repeticao = repeticao     // semanal, mensal, null
     }
 
-    
 
 }
 
