@@ -71,7 +71,7 @@ async function atualizarUsuario(req, res) {
       .input("email", email)
       .input("senha", senha)
       .query(`
-        UPDATE Usuario
+        UPDATE simpleCash.Usuario
         SET nome = @nome,
             email = @email,
             senha = @senha
@@ -132,6 +132,34 @@ async function loginUsuario(req, res) {
     res.status(500).json({ error: 'Erro ao realizar login.' });
   }
 }
+
+/*
+async function atualizarSaldo(req, res) {
+  const { id } = req.params;
+  const { saldoAtual } = req.body;
+
+  try {
+    const pool = await conectaBD();
+    await pool.request()
+      .input("idUsuario", id)
+      .input("nome", nome)
+      .input("email", email)
+      .input("senha", senha)
+      .query(`
+        UPDATE simpleCash.Usuario
+        SET nome = @nome,
+            email = @email,
+            senha = @senha
+        WHERE idUsuario = @idUsuario
+      `);
+
+    res.json({ message: "Saldo atualizado com sucesso!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao atualizar saldo do usuário." });
+  }
+}
+*/
 
 module.exports = {
   criarUsuario,

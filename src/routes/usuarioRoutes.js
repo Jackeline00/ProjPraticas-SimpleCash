@@ -9,7 +9,7 @@ router.post('/', usuarioController.criarUsuario);
 router.get('/', usuarioController.listarUsuarios);
 
 // Buscar usuário por ID
-router.get('/:id', usuarioController.buscarUsuarioPorId);
+router.get('/:id', usuarioController.buscarUsuario);
 
 // Atualizar usuário
 router.put('/:id', usuarioController.atualizarUsuario);
@@ -17,9 +17,8 @@ router.put('/:id', usuarioController.atualizarUsuario);
 // Deletar usuário
 router.delete('/:id', usuarioController.deletarUsuario);
 
-// (EXTRAS: se você já tivesse implementado no controller, ficaria assim)
-// Login
-// router.post('/login', usuarioController.loginUsuario);
+// Fazer login
+router.post('/login',usuarioController.loginUsuario);
 
 // Atualizar saldo
 // router.put('/:id/saldo', usuarioController.atualizarSaldo);

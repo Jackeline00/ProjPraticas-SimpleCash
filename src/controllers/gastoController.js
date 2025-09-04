@@ -43,7 +43,7 @@ async function criarGasto(req, res) {
 }
 
 // Listar todos os gastos de um usuário
-async function listarGasto(req, res) {
+async function listarGastos(req, res) {
   const { idUsuario } = req.params;
 
   try {
@@ -180,7 +180,7 @@ async function deletarGasto(req, res) {
 
 module.exports = {
   criarGasto,
-  listarGasto,
+  listarGastos,
   buscarGasto,
   atualizarGasto,
   deletarGasto
