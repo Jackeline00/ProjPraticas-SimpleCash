@@ -17,7 +17,7 @@ async function criarGanho(req, res) {
       .input('repeticao', repeticao)
 
       .query(`
-        INSERT INTO Ganhos (idUsuario, valor, descricao, data, tipo, repeticao)
+        INSERT INTO simpleCash.Ganho (idUsuario, valor, descricao, data, tipo, repeticao)
         VALUES (@idUsuario, @valor, @descricao, @data, @tipo, @repeticao)
       `);
 
@@ -26,7 +26,7 @@ async function criarGanho(req, res) {
       .input('idUsuario', idUsuario)
       .input('valor', valor)
       .query(`
-        UPDATE simplecash.usuario
+        UPDATE simpleCash.Usuario
         SET saldoTotal = saldoTotal + @valor
         WHERE idUsuario = @idUsuario
       `);
@@ -46,7 +46,7 @@ async function listarGanhos(req, res) {
     const pool = await conectaBD();
     const result = await pool.request()
       .input('idUsuario', idUsuario)
-      .query('SELECT * FROM simpleCash.Ganhos WHERE idUsuario = @idUsuario');
+      .query('SELECT * FROM simpleCash.Ganho WHERE idUsuario = @idUsuario');
 
     res.json(result.recordset);
   } catch (err) {
@@ -63,7 +63,7 @@ async function buscarGanho(req, res) {
     const pool = await conectaBD();
     const result = await pool.request()
       .input('idGanho', id)
-      .query('SELECT * FROM simpleCash.Ganhos WHERE idGanho = @idGanho');
+      .query('SELECT * FROM simpleCash.Ganho WHERE idGanho = @idGanho');
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: 'Ganho não encontrado.' });
@@ -87,7 +87,7 @@ async function atualizarGanho(req, res) {
     // Primeiro, buscar o valor antigo para ajustar saldo
     const result = await pool.request()
       .input('idGanho', id)
-      .query('SELECT * FROM simpleCash.Ganhos WHERE idGanho = @idGanho');
+      .query('SELECT * FROM simpleCash.Ganho WHERE idGanho = @idGanho');
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: 'Ganho não encontrado.' });
@@ -105,7 +105,7 @@ async function atualizarGanho(req, res) {
       .input('tipo', tipo)
       .input('repeticao', repeticao)
       .query(`
-        UPDATE Ganhos
+        UPDATE simpleCash.Ganho
         SET valor = @valor, descricao = @descricao, data = @data, tipo = @tipo, repeticao = @repeticao
         WHERE idGanho = @idGanho
       `);
@@ -115,7 +115,7 @@ async function atualizarGanho(req, res) {
       .input('idUsuario', ganhoAntigo.idUsuario)
       .input('diferenca', diferenca)
       .query(`
-        UPDATE Usuario
+        UPDATE simpleCash.Usuario
         SET saldoTotal = saldoTotal + @diferenca
         WHERE idUsuario = @idUsuario
       `);
@@ -137,7 +137,7 @@ async function deletarGanho(req, res) {
     // Buscar valor do ganho para ajustar saldo
     const result = await pool.request()
       .input('idGanho', id)
-      .query('SELECT * FROM simpleCash.Ganhos WHERE idGanho = @idGanho');
+      .query('SELECT * FROM simpleCash.Ganho WHERE idGanho = @idGanho');
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: 'Ganho não encontrado.' });
@@ -148,7 +148,7 @@ async function deletarGanho(req, res) {
     // Deletar ganho
     await pool.request()
       .input('idGanho', id)
-      .query('DELETE FROM simpleCash.Ganhos WHERE idGanho = @idGanho');
+      .query('DELETE FROM simpleCash.Ganho WHERE idGanho = @idGanho');
 
     // Atualizar saldo do usuário
     await pool.request()
