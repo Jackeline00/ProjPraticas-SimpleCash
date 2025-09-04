@@ -1,4 +1,4 @@
-const { connectDB } = require("../db/db"); // cria a conexão com o banco
+const { conectaBD } = require("../db/db"); // cria a conexão com o banco
 
 // Criar usuário
 async function criarUsuario(req, res) {
@@ -27,7 +27,7 @@ async function criarUsuario(req, res) {
 // Listar todos os usuários
 async function listarUsuarios(req, res) {
   try {
-    const pool = await connectDB(); // nova conexão com o banco
+    const pool = await conectaBD(); // nova conexão com o banco
     const result = await pool.request().query("SELECT * FROM simpleCash.usuario");
 
     res.json(result.recordset);
@@ -42,7 +42,7 @@ async function buscarUsuario(req, res) {
   const { id } = req.params;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
     const result = await pool.request()
       .input("idUsuario", id)
       .query("SELECT * FROM simpleCash.usuario WHERE idUsuario = @idUsuario");
@@ -64,7 +64,7 @@ async function atualizarUsuario(req, res) {
   const { nome, email, senha } = req.body;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
     await pool.request()
       .input("idUsuario", id)
       .input("nome", nome)
@@ -90,10 +90,10 @@ async function deletarUsuario(req, res) {
   const { id } = req.params;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
     await pool.request()
       .input("idUsuario", id)
-      .query("DELETE FROM simplecash.usuario WHERE idUsuario = @idUsuario");
+      .query("DELETE FROM simpleCash.Usuario WHERE idUsuario = @idUsuario");
 
     res.json({ message: "Usuário deletado com sucesso!" });
   } catch (err) {
@@ -102,10 +102,42 @@ async function deletarUsuario(req, res) {
   }
 }
 
+// Login usuário - validar senha e email
+async function loginUsuario(req, res) {
+  const { email, senha } = req.body;
+
+  try {
+    const pool = await connectDB();
+
+    // Busca usuário pelo email
+    const result = await pool.request()
+      .input('email', email)
+      .query('SELECT * FROM simpleCash.Usuario WHERE email = @email');
+
+    if (result.recordset.length === 0) {
+      return res.status(401).json({ error: 'Email ou senha inválidos' });
+    }
+
+    const usuario = result.recordset[0];
+
+    // Validar senha
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ error: 'Email ou senha inválidos' });
+    }
+
+    res.json({ message: 'Login realizado com sucesso!', idUsuario: usuario.idUsuario });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao realizar login.' });
+  }
+}
+
 module.exports = {
   criarUsuario,
   listarUsuarios,
   buscarUsuario,
   atualizarUsuario,
-  deletarUsuario
+  deletarUsuario,
+  loginUsuario
 };

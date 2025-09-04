@@ -12,13 +12,6 @@ class Gasto{
         this.tipoJuros = tipoJuros     // simples ou composto
     }
 
-    calcularJuros(){
-
-    }
-
-
-
-
 }
 
 module.exports = Gasto  // para poder acessar a classe em outros lugares do projeto

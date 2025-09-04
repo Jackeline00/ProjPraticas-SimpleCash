@@ -1,9 +1,9 @@
 const sql = require('mssql');
 require('dotenv').config();
 
-const config  = process.env.STRING_CONNECTION; // pega a string de conexão
+const config = process.env.STRING_CONNECTION; // pega a string de conexão
 
-async function connectDB() {
+async function conectaBD() {
   try {
     const pool = await sql.connect(config);
     return pool;
@@ -13,4 +13,4 @@ async function connectDB() {
   }
 }
 
-module.exports = { connectDB };
+module.exports = { conectaBD };

@@ -1,11 +1,11 @@
-const { connectDB } = require('../db/db');
+const { conectaBD } = require('../db/db');
 
 // Criar ganho
 async function criarGanho(req, res) {
   const { idUsuario, valor, descricao, data, tipo, repeticao } = req.body;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
 
     // 1. Inserir ganho
     await pool.request()
@@ -43,7 +43,7 @@ async function listarGanhos(req, res) {
   const { idUsuario } = req.params;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
     const result = await pool.request()
       .input('idUsuario', idUsuario)
       .query('SELECT * FROM simpleCash.Ganhos WHERE idUsuario = @idUsuario');
@@ -60,7 +60,7 @@ async function buscarGanho(req, res) {
   const { id } = req.params;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
     const result = await pool.request()
       .input('idGanho', id)
       .query('SELECT * FROM simpleCash.Ganhos WHERE idGanho = @idGanho');
@@ -82,7 +82,7 @@ async function atualizarGanho(req, res) {
   const { valor, descricao, data } = req.body;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
 
     // Primeiro, buscar o valor antigo para ajustar saldo
     const result = await pool.request()
@@ -132,7 +132,7 @@ async function deletarGanho(req, res) {
   const { id } = req.params;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
 
     // Buscar valor do ganho para ajustar saldo
     const result = await pool.request()
