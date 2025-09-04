@@ -1,2 +1,3 @@
+# cada linha dessa arquivo indica uma pasta ou arquivo que o git deve ignorar
 node_modules/
 .env
