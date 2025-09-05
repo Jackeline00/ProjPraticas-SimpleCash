@@ -2,7 +2,7 @@ const { conectaBD } = require('../db/db');
 
 // Criar ganho
 async function criarGanho(req, res) {
-  const { idUsuario, valor, descricao, data, tipo, repeticao } = req.body;
+  const { idUsuario, valor, descricao, dataCriacao, tipo, repeticao } = req.body;
 
   try {
     const pool = await conectaBD();
@@ -12,13 +12,13 @@ async function criarGanho(req, res) {
       .input('idUsuario', idUsuario)
       .input('valor', valor)
       .input('descricao', descricao)
-      .input('data', data)
+      .input('dataCriacao', dataCriacao)
       .input('tipo', tipo)
       .input('repeticao', repeticao)
 
       .query(`
-        INSERT INTO simpleCash.Ganho (idUsuario, valor, descricao, data, tipo, repeticao)
-        VALUES (@idUsuario, @valor, @descricao, @data, @tipo, @repeticao)
+        INSERT INTO simpleCash.Ganho (idUsuario, valor, descricao, dataCriacao, tipo, repeticao)
+        VALUES (@idUsuario, @valor, @descricao, @dataCriacao, @tipo, @repeticao)
       `);
 
     // 2. Atualizar saldo do usuário

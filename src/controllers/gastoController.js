@@ -2,7 +2,7 @@ const { conectaBD } = require('../db/db');
 
 // Criar gasto
 async function criarGasto(req, res) {
-  const { idUsuario, tipo, descricao, valor, data, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros } = req.body;
+  const { idUsuario, tipo, descricao, valor, dataCriacao, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros } = req.body;
 
   try {
     const pool = await conectaBD();
@@ -13,7 +13,7 @@ async function criarGasto(req, res) {
       .input('tipo', tipo)
       .input('descricao', descricao)
       .input('valor', valor)
-      .input('data', data)
+      .input('dataCriacao', dataCriacao)
       .input('repeticao', repeticao)
       .input('dataInicio', dataInicio)
       .input('dataFinal', dataFinal)
@@ -21,8 +21,8 @@ async function criarGasto(req, res) {
       .input('juros', juros)
       .input('tipoJuros', tipoJuros)
       .query(`
-        INSERT INTO simpleCash.Gasto (idUsuario, tipo, descricao, valor, data, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros)
-        VALUES (@idUsuario, @tipo, @descricao, @valor, @data, @repeticao, @dataInicio, @dataFinal, @quantidadeDeParcelas, @juros, @tipoJuros)
+        INSERT INTO simpleCash.Gasto (idUsuario, tipo, descricao, valor, dataCriacao, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros)
+        VALUES (@idUsuario, @tipo, @descricao, @valor, @dataCriacao, @repeticao, @dataInicio, @dataFinal, @quantidadeDeParcelas, @juros, @tipoJuros)
       `);
 
     // 2. Atualizar saldo do usuário

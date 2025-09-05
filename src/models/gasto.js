@@ -1,5 +1,5 @@
 class Gasto{
-    constructor(id, idUsuario, tipo, descricao, valor, data, repeticao, dataInicio, dataFinal, juros, tipoJuros){
+    constructor(id, idUsuario, tipo, descricao, valor, data, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros){
         this.idGasto = id; 
         this.idUsuario = idUsuario;
         this.tipo = tipo;               // se é fixo ou variável
@@ -9,6 +9,7 @@ class Gasto{
         this.repeticao = repeticao;     // semanal, mensal, null
         this.dataInicio = dataInicio;   // primeiro dia em que será descontado o valor
         this.dataFinal = dataFinal;     // até quando será repetido o gasto automaticamente
+        this.quantidadeDeParcelas = quantidadeDeParcelas;
         this.juros = juros;             // valor do juro, caso este exista
         this.tipoJuros = tipoJuros;     // simples ou composto
     }
