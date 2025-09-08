@@ -2,7 +2,7 @@ const { conectaBD } = require("../db/db"); // cria a conexão com o banco
 
 // Criar usuário
 async function criarUsuario(req, res) {
-  const { nome, email, senha } = req.body; // pega os dados digitados pelo usuário (flutter)
+  const { nome, email, senha, saldoTotal } = req.body; // pega os dados digitados pelo usuário (flutter)
 
   try {
     const pool = await conectaBD(); // abre uma conexão com o banco
