@@ -11,10 +11,10 @@ async function criarUsuario(req, res) {
       .input("nome", nome) 
       .input("email", email)
       .input("senha", senha)
-      .input("saldoAtual", saldoAtual)
+      .input("saldoTotal", saldoTotal)
       .query(`
-        INSERT INTO simpleCash.usuario (nome, email, senha, dataCriacao, saldoTotal)
-        VALUES (@nome, @email, @senha, GETDATE(), @saldoAtual)
+        INSERT INTO simpleCash.Usuario (nome, email, senha, dataCriacao, saldoTotal)
+        VALUES (@nome, @email, @senha, GETDATE(), @saldoTotal)
       `);
 
     res.status(201).json({ message: "Conta criada com sucesso!" });
@@ -28,7 +28,7 @@ async function criarUsuario(req, res) {
 async function listarUsuarios(req, res) {
   try {
     const pool = await conectaBD(); // nova conexão com o banco
-    const result = await pool.request().query("SELECT * FROM simpleCash.usuario");
+    const result = await pool.request().query("SELECT * FROM simpleCash.Usuario");
 
     res.json(result.recordset);
   } catch (err) {
@@ -45,7 +45,7 @@ async function buscarUsuario(req, res) {
     const pool = await conectaBD();
     const result = await pool.request()
       .input("idUsuario", id)
-      .query("SELECT * FROM simpleCash.usuario WHERE idUsuario = @idUsuario");
+      .query("SELECT * FROM simpleCash.Usuario WHERE idUsuario = @idUsuario");
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: "Usuário não encontrado." });
