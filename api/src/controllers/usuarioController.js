@@ -5,7 +5,7 @@ async function criarUsuario(req, res) {
   const { nome, email, senha } = req.body; // pega os dados digitados pelo usuário (flutter)
 
   try {
-    const pool = await connectDB(); // abre uma conexão com o banco
+    const pool = await conectaBD(); // abre uma conexão com o banco
 
     await pool.request() // prepara uma consulta sql
       .input("nome", nome) 
@@ -19,7 +19,7 @@ async function criarUsuario(req, res) {
 
     res.status(201).json({ message: "Conta criada com sucesso!" });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao criar a conta", err);
     res.status(500).json({ error: "Erro ao criar a conta." });
   }
 }
