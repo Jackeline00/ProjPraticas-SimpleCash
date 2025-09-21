@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SimpleCash',
+      debugShowCheckedModeBanner: false, /// tira o DEBUG das telas na execução
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
