@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; /// importa ferramentas e widgets do flutter úteis
+import '../services/auth_service.dart'; /// importa a classe AuthService
 
-
-class Login extends StatefulWidget {
+class Login extends StatefulWidget { /// tela que pode mudar seu estado interno
   const Login({super.key});
 
   @override
@@ -9,26 +9,36 @@ class Login extends StatefulWidget {
 }
 
 class _LoginScreen extends State<Login> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _senhaController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();          /// chave global que vai validar os campos
+  final _emailController = TextEditingController(); // controladores de texto para capturar os 
+  final _senhaController = TextEditingController(); // valores digitados
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
+  void _login() async { // método chamado quando o botão Entrar for precionado
+    if (_formKey.currentState!.validate()) { /// verifica se todos os campos foram preenchidos corretamente
       final email = _emailController.text;
       final senha = _senhaController.text;
 
-      // Aqui futuramente vai chamar sua API de login
-      print("Tentando login com: $email / $senha");
+      final authService = AuthService(); /// instância da classe AuthService
+      bool sucesso = await authService.login(email, senha); /// chama o método login dessa classe
 
+      if (sucesso) { 
+      /// se o login estiver correto
+      ScaffoldMessenger.of(context).showSnackBar( 
+        const SnackBar(content: Text("Login realizado com sucesso!")),
+      );
       
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Falha no login")),
+        );
+      }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+  @override 
+  Widget build(BuildContext context) { /// início da criação da tela
+    return Scaffold( // layout base da tela
+      appBar: AppBar(title: const Text("Login")), // título principal
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -37,28 +47,28 @@ class _LoginScreen extends State<Login> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextFormField(
-                controller: _emailController,
+                controller: _emailController, /// pega o valor digitado
                 decoration: const InputDecoration(
                   labelText: "E-mail",
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Digite seu e-mail";
+                validator: (value) { /// valida o email
+                  if (value == null || value.isEmpty) { /// verifica se ele foi digitado corretamente
+                    return "Digite seu e-mail"; 
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _senhaController,
+                controller: _senhaController, /// pega a senha digitada
                 decoration: const InputDecoration(
                   labelText: "Senha",
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
+                validator: (value) { /// valida a senha
+                  if (value == null || value.isEmpty) { /// verifica se o campo não está vazio
                     return "Digite sua senha";
                   }
                   return null;
@@ -66,7 +76,7 @@ class _LoginScreen extends State<Login> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _login,
+                onPressed: _login, /// botão chama a função _login ao ser precionado
                 child: const Text("Entrar"),
               ),
             ],
