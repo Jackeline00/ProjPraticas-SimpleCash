@@ -24,12 +24,13 @@ class _LoginScreen extends State<Login> {
       if (sucesso) { 
       /// se o login estiver correto
       ScaffoldMessenger.of(context).showSnackBar( 
+        /// aqui futuramente irá mandar para uma nova tela
         const SnackBar(content: Text("Login realizado com sucesso!")),
       );
       
-      } else {
+      } else { // falha no login
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Falha no login")),
+          const SnackBar(content: Text("Email ou senha incorretos.")),
         );
       }
     }

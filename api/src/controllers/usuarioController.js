@@ -1,16 +1,21 @@
 const { conectaBD } = require("../db/db"); // cria a conexão com o banco
+const bcrypt = require("bcrypt");
 
 // Criar usuário
 async function criarUsuario(req, res) {
-  const { nome, email, senha, saldoTotal } = req.body; // pega os dados digitados pelo usuário (flutter)
+  const { nome, email, senha, saldoTotal } = req.body;
 
   try {
-    const pool = await conectaBD(); // abre uma conexão com o banco
+    const pool = await conectaBD();
 
-    await pool.request() // prepara uma consulta sql
-      .input("nome", nome) 
+    /// criptografa a senha antes de salvar
+    const saltRounds = 10;
+    const senhaCriptografada = await bcrypt.hash(senha, saltRounds);
+
+    await pool.request()
+      .input("nome", nome)
       .input("email", email)
-      .input("senha", senha)
+      .input("senha", senhaCriptografada) // salva o hash, não a senha pura
       .input("saldoTotal", saldoTotal)
       .query(`
         INSERT INTO simpleCash.Usuario (nome, email, senha, dataCriacao, saldoTotal)
@@ -107,7 +112,7 @@ async function loginUsuario(req, res) {
   const { email, senha } = req.body;
 
   try {
-    const pool = await connectDB();
+    const pool = await conectaBD();
 
     // Busca usuário pelo email
     const result = await pool.request()
