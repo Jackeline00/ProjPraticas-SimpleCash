@@ -5,9 +5,10 @@ import '../services/auth_service.dart'; /// importa a classe AuthService
 //
 
 class Cadastro extends StatefulWidget{
+  const Cadastro({super.key});
 
   @override
-    State<Cadastro> createState() => _CadastroScreen();
+  State<Cadastro> createState() => _CadastroScreen();
 }
 
 class _CadastroScreen extends State<Cadastro>{
@@ -23,10 +24,10 @@ class _CadastroScreen extends State<Cadastro>{
       final nome = _nomeController.text;
       final email = _emailController.text;
       final senha = _senhaController.text;
-      final saldoAtual = double.tryParse(_saldoAtualController.text);
+      final saldoTotal = double.tryParse(_saldoAtualController.text) ?? 0.0; /// será atribuído 0.0 caso o usuário coloque algo inválido
 
       final authService = AuthService();
-      bool sucesso = await authService.cadastro(nome, email, senha, saldoAtual);
+      bool sucesso = await authService.cadastro(nome, email, senha, saldoTotal);
 
     }
   }

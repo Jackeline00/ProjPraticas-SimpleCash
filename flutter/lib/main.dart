@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/login.dart';
+import 'screens/cadastro.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,9 +17,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: "/login",
+      initialRoute: "/login",        /// primeira tela que vai abrir
       routes: {
         "/login": (context) => const Login(),
+        //"/cadastro": (context) => const Cadastro(),
       },
     );
   }

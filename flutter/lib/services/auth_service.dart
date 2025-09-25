@@ -22,7 +22,7 @@ class AuthService { /// classe que possui métodos de autenticação
     }
   }
 
-  Future<bool> cadastro(String nome, String email, String senha, Double saldoAtual) async{
+  Future<bool> cadastro(String nome, String email, String senha, double saldoTotal) async{
     final response = await http.post(
       Uri.parse('$baseUrl/usuarios/'),
       headers: {"Content-Type": "application/json"},
@@ -30,7 +30,7 @@ class AuthService { /// classe que possui métodos de autenticação
         "nome": nome,
         "email": email,
         "senha": senha,
-        "saldoAtual":saldoAtual
+        "saldoTotal":saldoTotal
       })
     );
 
