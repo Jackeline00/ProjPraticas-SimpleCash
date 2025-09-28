@@ -12,13 +12,14 @@ class Cadastro extends StatefulWidget{
 }
 
 class _CadastroScreen extends State<Cadastro>{
-  /// Variáveis e outras coisas 
+  /// Controladores de texto para capturar os valores digitados 
   final _formKey = GlobalKey<FormState>();  
-  final _nomeController = TextEditingController();  /// controladores de texto para capturar os 
-  final _emailController = TextEditingController(); /// valores digitados
+  final _nomeController = TextEditingController();  
+  final _emailController = TextEditingController(); 
   final _senhaController = TextEditingController();
   final _saldoAtualController = TextEditingController();
   
+  // Método
   void _cadastro() async{ /// método que será chamado quando o botão "Criar conta" for precionado
     if (_formKey.currentState!.validate()) { /// se todos os campos foram preenchidos
       final nome = _nomeController.text;
