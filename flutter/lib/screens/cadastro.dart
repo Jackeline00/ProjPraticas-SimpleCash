@@ -19,7 +19,7 @@ class _CadastroScreen extends State<Cadastro>{
   final _senhaController = TextEditingController();
   final _saldoAtualController = TextEditingController();
   
-  void _cadatro() async{ /// método que será chamado quando o botão "Criar conta" for precionado
+  void _cadastro() async{ /// método que será chamado quando o botão "Criar conta" for precionado
     if (_formKey.currentState!.validate()) { /// se todos os campos foram preenchidos
       final nome = _nomeController.text;
       final email = _emailController.text;
@@ -49,6 +49,7 @@ class _CadastroScreen extends State<Cadastro>{
 
     }
   }
+
 
   /// design visual da tela
   @override 
@@ -135,7 +136,7 @@ class _CadastroScreen extends State<Cadastro>{
 
               const SizedBox(height: 80),
               ElevatedButton(
-                onPressed: _cadatro, //// botão vai chamar a função que vai criar o usuário 
+                onPressed: _cadastro, //// botão vai chamar a função que vai criar o usuário 
                 child: const Text(
                   "Criar conta",
                   style: TextStyle(color: Color.fromARGB(255, 108, 153, 252)),
