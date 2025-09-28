@@ -42,9 +42,9 @@ class _LoginScreen extends State<Login> {
       appBar: AppBar(
         centerTitle: true, /// deixa o título centralizado
         title: const Text(
-          "Login",
+          "Cadastro",
           style: TextStyle( /// estilo do título Login
-            color: Color.fromARGB(255, 101, 144, 209),
+            color: Color.fromARGB(255, 13, 69, 144),
             fontSize: 30
         ),
       )), // título principal

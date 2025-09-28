@@ -20,4 +20,38 @@ class AuthService { /// classe que possui métodos de autenticação
       return false; // erro
     }
   }
+
+  Future<bool> cadastro(String nome, String email, String senha, double saldoTotal) async{
+    final response = await http.post(
+      Uri.parse('$baseUrl/usuarios/'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "nome": nome,
+        "email": email,
+        "senha": senha,
+        "saldoTotal":saldoTotal
+      })
+    );
+
+    if(response.statusCode == 201){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  Future<bool> existe(String email) async{
+    final response = await http.get(
+      Uri.parse('$baseUrl/usuarios/'),
+      headers: {"Contect-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) { /// caso o usuário for encontrado
+      return true;
+    }else{
+      return false;
+    }
+
+  }
+
 }
