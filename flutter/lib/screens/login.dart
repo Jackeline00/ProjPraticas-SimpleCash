@@ -24,9 +24,10 @@ class _LoginScreen extends State<Login> {
       if (sucesso) { 
       /// se o login estiver correto
       ScaffoldMessenger.of(context).showSnackBar( 
-        /// aqui futuramente irá mandar para uma nova tela
         const SnackBar(content: Text("Login realizado com sucesso!")),
       );
+      //// aqui futuramente irá mandar para uma nova tela //
+      // Navigator.pushReplacementNamed(context, "/home");
       
       } else { // falha no login
         ScaffoldMessenger.of(context).showSnackBar(
@@ -38,7 +39,7 @@ class _LoginScreen extends State<Login> {
 
   @override 
   Widget build(BuildContext context) { /// início da criação da tela
-    return Scaffold( // layout base da tela
+    return Scaffold( /// layout base da tela
       appBar: AppBar(
         centerTitle: true, /// deixa o título centralizado
         title: const Text(
@@ -47,7 +48,7 @@ class _LoginScreen extends State<Login> {
             color: Color.fromARGB(255, 13, 69, 144),
             fontSize: 30
         ),
-      )), // título principal
+      )), /// título principal
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

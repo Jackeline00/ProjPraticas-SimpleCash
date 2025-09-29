@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
         /// fontFamily: '',  COLOCAR AQUI A FONTE PARA TODO O APP
       ),
       initialRoute: "/login",        /// primeira tela que vai abrir
+      
       routes: {
         "/login": (context) => const Login(),
         //"/cadastro": (context) => const Cadastro(),

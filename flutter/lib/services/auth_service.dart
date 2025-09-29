@@ -14,7 +14,7 @@ class AuthService { /// classe que possui métodos de autenticação
       }),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) { 
       return true; // login OK
     } else {
       return false; // erro

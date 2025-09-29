@@ -30,13 +30,13 @@ class _CadastroScreen extends State<Cadastro>{
 
       final authService = AuthService();
       bool existe = await authService.existe(email);
-      
+
       if (existe){
         const SnackBar(content: Text("O email digitado já está sendo usado em uma outra conta."));
       }
       else{ 
         bool sucesso = await authService.cadastro(nome, email, senha, saldoTotal);
-        /// aqui futuramente irá mandar para uma nova tela
+        /// aqui futuramente irá mandar para uma nova tela se for cadastrado corretamente
         // Navigator.pushReplacementNamed(context, "/home");
         if(sucesso){
           ScaffoldMessenger.of(context).showSnackBar( 
@@ -157,7 +157,7 @@ class _CadastroScreen extends State<Cadastro>{
 
                 validator: (value) { /// valida o saldo
                   if (value == null || value.isEmpty) { /// verifica se ele foi digitado corretamente
-                    return "Por favor, digite o saldo atual de sua conta (seu saldo pode começar com 0.0)"; 
+                    return "Por favor, digite seu saldo atual (seu saldo inicial pode ser 0.0)"; 
                   }
                   if (double.tryParse(value) == null) { /// verifica se ele é um número 
                     return 'Por favor, digite um número válido';
