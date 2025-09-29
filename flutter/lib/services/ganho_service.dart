@@ -24,9 +24,23 @@ class GanhoService {
     }
   }
 
-   Future<bool> editar(int idUsuario, double valor, String descricao, String tipo, String repeticao) async{
-    final response = await http.put(
+  Future<bool> mostrarGanhos(int idUsuario) async{
+    final response = await http.get(
       Uri.parse('$baseUrl/ganhos/$idUsuario'),
+      headers: {"Content-Type": "application/json"},
+      
+    );
+
+     if(response.statusCode == 201){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+   Future<bool> editar(int id, int idUsuario, double valor, String descricao, String tipo, String repeticao) async{
+    final response = await http.put(
+      Uri.parse('$baseUrl/ganhos/$id'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "valor": valor,
@@ -49,7 +63,7 @@ class GanhoService {
       headers: {"Contect-Type": "application/json"},
     );
     
-    if (response.statusCode == 200) { /// caso o usuário seja apagado
+    if (response.statusCode == 200) { 
       return true;
     }else{
       return false;
