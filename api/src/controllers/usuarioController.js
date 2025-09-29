@@ -63,6 +63,27 @@ async function buscarUsuario(req, res) {
   }
 }
 
+// Buscar usuário por email
+async function buscarPorEmail(req, res) {
+  const { email } = req.params;
+
+  try {
+    const pool = await conectaBD();
+    const result = await pool.request()
+      .input("email", email)
+      .query("SELECT * FROM simpleCash.Usuario WHERE email = @email");
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    res.json(result.recordset[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar usuário." });
+  }
+}
+
 // Atualizar usuário
 async function atualizarUsuario(req, res) {
   const { id } = req.params;
@@ -92,13 +113,13 @@ async function atualizarUsuario(req, res) {
 
 // Deletar usuário
 async function deletarUsuario(req, res) {
-  const { id } = req.params;
+  const { email } = req.params;
 
   try {
     const pool = await conectaBD();
     await pool.request()
-      .input("idUsuario", id)
-      .query("DELETE FROM simpleCash.Usuario WHERE idUsuario = @idUsuario");
+      .input("idUsuario", email)
+      .query("DELETE FROM simpleCash.Usuario WHERE email = @email");
 
     res.json({ message: "Usuário deletado com sucesso!" });
   } catch (err) {
@@ -170,6 +191,7 @@ module.exports = {
   criarUsuario,
   listarUsuarios,
   buscarUsuario,
+  buscarPorEmail,
   atualizarUsuario,
   deletarUsuario,
   loginUsuario

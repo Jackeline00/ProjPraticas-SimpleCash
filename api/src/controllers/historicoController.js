@@ -2,7 +2,7 @@ const { conectaBD } = require("../db/db"); // cria a conexão com o banco
 
 // Adicionar no histórico
 async function criarDado(req, res) {
-  const { idUsuario, tipoAtividade, idReferencia, descricao, valor, data } = req.body; 
+  const { idUsuario, tipoAtividade, idReferencia, descricao, valor } = req.body; 
 
   try {
     const pool = await connectDB(); // abre uma conexão com o banco
@@ -13,10 +13,10 @@ async function criarDado(req, res) {
       .input("idReferencia", idReferencia)
       .input("descricao", descricao)
       .input("valor", valor)
-      .input("data", data)
+      //.input("data", data)
       .query(`
         INSERT INTO simpleCash.Historico (idUsuario, tipoAtividade, idReferencia, descricao, valor, data)
-        VALUES (@idUsuario, @tipoAtividade, @idReferencia, @descricao, @valor, @data)
+        VALUES (@idUsuario, @tipoAtividade, @idReferencia, @descricao, @valor, GETDATE())
       `);
 
     res.status(201).json({ message: "Dado adicionado ao histrico com sucesso!" });

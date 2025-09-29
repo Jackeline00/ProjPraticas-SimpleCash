@@ -12,13 +12,13 @@ async function criarGanho(req, res) {
       .input('idUsuario', idUsuario)
       .input('valor', valor)
       .input('descricao', descricao)
-      .input('dataCriacao', dataCriacao)
+      //.input('dataCriacao', dataCriacao)
       .input('tipo', tipo)
       .input('repeticao', repeticao)
 
       .query(`
         INSERT INTO simpleCash.Ganho (idUsuario, valor, descricao, dataCriacao, tipo, repeticao)
-        VALUES (@idUsuario, @valor, @descricao, @dataCriacao, @tipo, @repeticao)
+        VALUES (@idUsuario, @valor, @descricao, GETDATE(), @tipo, @repeticao)
       `);
 
     // 2. Atualizar saldo do usuário

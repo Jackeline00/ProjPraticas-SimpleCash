@@ -12,14 +12,15 @@ class Cadastro extends StatefulWidget{
 }
 
 class _CadastroScreen extends State<Cadastro>{
-  /// Variáveis e outras coisas 
+  /// Controladores de texto para capturar os valores digitados 
   final _formKey = GlobalKey<FormState>();  
-  final _nomeController = TextEditingController();  /// controladores de texto para capturar os 
-  final _emailController = TextEditingController(); /// valores digitados
+  final _nomeController = TextEditingController();  
+  final _emailController = TextEditingController(); 
   final _senhaController = TextEditingController();
   final _saldoAtualController = TextEditingController();
   
-  void _cadatro() async{ /// método que será chamado quando o botão "Criar conta" for precionado
+  // Método
+  void _cadastro() async{ /// método que será chamado quando o botão "Criar conta" for precionado
     if (_formKey.currentState!.validate()) { /// se todos os campos foram preenchidos
       final nome = _nomeController.text;
       final email = _emailController.text;
@@ -28,9 +29,28 @@ class _CadastroScreen extends State<Cadastro>{
 
       final authService = AuthService();
       bool sucesso = await authService.cadastro(nome, email, senha, saldoTotal);
+      bool existe = await authService.existe(email);
+      
+      if (existe){
+        const SnackBar(content: Text("O email digitado já está sendo usado em uma outra conta."));
+      }
+      else if (sucesso) { 
+      /// aqui futuramente irá mandar para uma nova tela
+      // Navigator.pushReplacementNamed(context, "/home");
+
+      ScaffoldMessenger.of(context).showSnackBar( 
+        const SnackBar(content: Text("Conta criada com sucesso!")),
+      );
+      } 
+        else {
+        ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erro ao criar conta. Tente novamente.")),
+      );
+      }
 
     }
   }
+
 
   /// design visual da tela
   @override 
@@ -41,19 +61,21 @@ class _CadastroScreen extends State<Cadastro>{
         title: const Text(
           "Cadastro",
           style: TextStyle( /// estilo do título Login
-            color: Color.fromARGB(255, 101, 144, 209),
-            fontSize: 30
+            color: Color.fromARGB(255, 13, 69, 144),
+            fontSize: 40,
+            fontFamily: 'Arial'
         ),
         )
       ),
       body:Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(4.0),
         child: Center(child: 
           Form(
-          key: _formKey, //// depois vai existir
+          key: _formKey, 
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              
               SizedBox(
                 width: 400,
                 child: TextFormField(
@@ -61,7 +83,6 @@ class _CadastroScreen extends State<Cadastro>{
                 decoration: const InputDecoration(
                   labelText: "Nome",
                   border: OutlineInputBorder(),
-
                 ),
                 
 
@@ -116,7 +137,7 @@ class _CadastroScreen extends State<Cadastro>{
 
               const SizedBox(height: 80),
               ElevatedButton(
-                onPressed: _cadatro, //// botão vai chamar a função que vai criar o usuário 
+                onPressed: _cadastro, //// botão vai chamar a função que vai criar o usuário 
                 child: const Text(
                   "Criar conta",
                   style: TextStyle(color: Color.fromARGB(255, 108, 153, 252)),

@@ -39,7 +39,15 @@ class _LoginScreen extends State<Login> {
   @override 
   Widget build(BuildContext context) { /// início da criação da tela
     return Scaffold( // layout base da tela
-      appBar: AppBar(title: const Text("Login")), // título principal
+      appBar: AppBar(
+        centerTitle: true, /// deixa o título centralizado
+        title: const Text(
+          "Login",
+          style: TextStyle( /// estilo do título Login
+            color: Color.fromARGB(255, 13, 69, 144),
+            fontSize: 30
+        ),
+      )), // título principal
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
