@@ -28,7 +28,6 @@ class GanhoService {
     final response = await http.get(
       Uri.parse('$baseUrl/ganhos/$idUsuario'),
       headers: {"Content-Type": "application/json"},
-      
     );
 
      if(response.statusCode == 201){
