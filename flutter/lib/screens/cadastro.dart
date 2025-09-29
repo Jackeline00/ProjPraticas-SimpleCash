@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart'; /// importa ferramentas e widgets do flutter úteis
+import 'package:flutter/services.dart';
 import '../services/auth_service.dart'; /// importa a classe AuthService
 
 /// Tela e classe responsáveis por criar usuário/conta
@@ -28,26 +29,26 @@ class _CadastroScreen extends State<Cadastro>{
       final saldoTotal = double.tryParse(_saldoAtualController.text) ?? 0.0; /// será atribuído 0.0 caso o usuário coloque algo inválido
 
       final authService = AuthService();
-      bool sucesso = await authService.cadastro(nome, email, senha, saldoTotal);
       bool existe = await authService.existe(email);
       
       if (existe){
         const SnackBar(content: Text("O email digitado já está sendo usado em uma outra conta."));
       }
-      else if (sucesso) { 
-      /// aqui futuramente irá mandar para uma nova tela
-      // Navigator.pushReplacementNamed(context, "/home");
-
-      ScaffoldMessenger.of(context).showSnackBar( 
-        const SnackBar(content: Text("Conta criada com sucesso!")),
-      );
+      else{ 
+        bool sucesso = await authService.cadastro(nome, email, senha, saldoTotal);
+        /// aqui futuramente irá mandar para uma nova tela
+        // Navigator.pushReplacementNamed(context, "/home");
+        if(sucesso){
+          ScaffoldMessenger.of(context).showSnackBar( 
+          const SnackBar(content: Text("Conta criada com sucesso!")),
+        );
       } 
         else {
-        ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erro ao criar conta. Tente novamente.")),
-      );
+          ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Erro ao criar conta. Tente novamente.")),
+        );
+        }
       }
-
     }
   }
 
@@ -84,7 +85,12 @@ class _CadastroScreen extends State<Cadastro>{
                   labelText: "Nome",
                   border: OutlineInputBorder(),
                 ),
-                
+                validator: (value) { /// valida o nome
+                  if (value == null || value.isEmpty) { /// verifica se ele foi digitado corretamente
+                    return "Digite seu nome"; 
+                  }
+                  return null;
+                },
 
                 )
               ),
@@ -98,8 +104,14 @@ class _CadastroScreen extends State<Cadastro>{
                 decoration: const InputDecoration(
                   labelText: "E-mail",
                   border: OutlineInputBorder(),
-
                 ),
+
+                validator: (value) { /// valida o email
+                  if (value == null || value.isEmpty) { /// verifica se ele foi digitado corretamente
+                    return "Digite seu e-mail"; 
+                  }
+                  return null;
+                },
                 
                 )
               ),
@@ -115,6 +127,15 @@ class _CadastroScreen extends State<Cadastro>{
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
+                validator: (value) { /// valida a senha
+                  if (value == null || value.isEmpty) { /// verifica se ela foi digitada corretamente
+                    return "Digite sua senha"; 
+                  }
+                  if (value.length < 6){
+                    return "A senha precisa ter no mínimo 6 caracteres";
+                  }
+                  return null;
+                },
                 
                 )
               ),
@@ -125,12 +146,26 @@ class _CadastroScreen extends State<Cadastro>{
                 width: 400,
                 child: TextFormField(
                 controller: _saldoAtualController, /// pega o valor digitado
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')), /// faz esse campo aceitar somente números do tipo 20.0
+                ],
                 decoration: const InputDecoration(
                   labelText: "Saldo atual",
                   border: OutlineInputBorder(),
-
                 ),
-                
+
+                validator: (value) { /// valida o saldo
+                  if (value == null || value.isEmpty) { /// verifica se ele foi digitado corretamente
+                    return "Por favor, digite o saldo atual de sua conta (seu saldo pode começar com 0.0)"; 
+                  }
+                  if (double.tryParse(value) == null) { /// verifica se ele é um número 
+                    return 'Por favor, digite um número válido';
+                  }
+                  else{
+                    return null;
+                  }
+                },
 
                 )
               ),
