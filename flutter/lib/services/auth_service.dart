@@ -1,5 +1,4 @@
 import 'dart:convert'; /// importa funcionalidades do Dart para codificar e decodificar JSON
-import 'dart:nativewrappers/_internal/vm/lib/ffi_native_type_patch.dart';
 import 'package:http/http.dart' as http; /// importa a biblioteca http que permite fazer requisições HTTP (GET, POST, etc)
 
 class AuthService { /// classe que possui métodos de autenticação
