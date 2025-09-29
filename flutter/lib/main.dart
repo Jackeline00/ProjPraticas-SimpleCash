@@ -16,6 +16,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, /// tira o DEBUG das telas na execução
       theme: ThemeData(
         primarySwatch: Colors.blue,
+<<<<<<< Updated upstream
+=======
+        /// fontFamily: '',  COLOCAR AQUI A FONTE PARA TODO O APP
+>>>>>>> Stashed changes
       ),
       initialRoute: "/login",        /// primeira tela que vai abrir
       routes: {
