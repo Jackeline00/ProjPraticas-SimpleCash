@@ -18,7 +18,7 @@ router.get('/:email', usuarioController.buscarPorEmail)
 router.put('/:id', usuarioController.atualizarUsuario);
 
 // Deletar usuário
-router.delete('/:id', usuarioController.deletarUsuario);
+router.delete('del/:email', usuarioController.deletarUsuario);
 
 // Fazer login
 router.post('/login',usuarioController.loginUsuario);

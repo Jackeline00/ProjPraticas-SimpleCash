@@ -42,11 +42,25 @@ class AuthService { /// classe que possui métodos de autenticação
 
   Future<bool> existe(String email) async{
     final response = await http.get(
-      Uri.parse('$baseUrl/usuarios/'),
+      Uri.parse('$baseUrl/usuarios/del/:email'),
       headers: {"Contect-Type": "application/json"},
     );
 
     if (response.statusCode == 200) { /// caso o usuário for encontrado
+      return true;
+    }else{
+      return false;
+    }
+
+  }
+
+  Future<bool> apagarConta(String email) async{
+      final response = await http.delete(
+      Uri.parse('$baseUrl/usuarios/'),
+      headers: {"Contect-Type": "application/json"},
+    );
+    
+    if (response.statusCode == 200) { /// caso o usuário seja apagado
       return true;
     }else{
       return false;

@@ -18,10 +18,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         /// fontFamily: 'MyFont',  COLOCAR AQUI A FONTE PARA TODO O APP
       ),
-      initialRoute: "/cadastro", //"/login",
+      initialRoute: "/login",
       routes: {
-        //"/login": (context) => const Login(),
-        "/cadastro": (context) => const Cadastro(),
+        "/login": (context) => const Login(),
+        //"/cadastro": (context) => const Cadastro(),
       },
     );
   }
