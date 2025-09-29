@@ -13,10 +13,10 @@ async function criarDado(req, res) {
       .input("idReferencia", idReferencia)
       .input("descricao", descricao)
       .input("valor", valor)
-      .input("data", data)
+      //.input("data", data)
       .query(`
         INSERT INTO simpleCash.Historico (idUsuario, tipoAtividade, idReferencia, descricao, valor, data)
-        VALUES (@idUsuario, @tipoAtividade, @idReferencia, @descricao, @valor, @data)
+        VALUES (@idUsuario, @tipoAtividade, @idReferencia, @descricao, @valor, GETDATE())
       `);
 
     res.status(201).json({ message: "Dado adicionado ao histrico com sucesso!" });

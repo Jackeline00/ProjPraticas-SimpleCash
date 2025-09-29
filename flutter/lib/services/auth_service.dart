@@ -14,7 +14,7 @@ class AuthService { /// classe que possui métodos de autenticação
       }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       return true; // login OK
     } else {
       return false; // erro
@@ -40,9 +40,27 @@ class AuthService { /// classe que possui métodos de autenticação
     }
   }
 
+  Future<bool> editar(int id, String nome, String email, String senha) async{
+    final response = await http.put(
+      Uri.parse('$baseUrl/usuarios/$id'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "nome": nome,
+        "email": email,
+        "senha": senha
+      })
+    );
+
+    if(response.statusCode == 200){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
   Future<bool> existe(String email) async{
     final response = await http.get(
-      Uri.parse('$baseUrl/usuarios/del/:email'),
+      Uri.parse('$baseUrl/usuarios/del/$email'),
       headers: {"Contect-Type": "application/json"},
     );
 
@@ -56,7 +74,7 @@ class AuthService { /// classe que possui métodos de autenticação
 
   Future<bool> apagarConta(String email) async{
       final response = await http.delete(
-      Uri.parse('$baseUrl/usuarios/'),
+      Uri.parse('$baseUrl/usuarios/$email'),
       headers: {"Contect-Type": "application/json"},
     );
     

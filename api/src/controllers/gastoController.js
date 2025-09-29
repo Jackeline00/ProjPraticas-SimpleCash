@@ -13,7 +13,7 @@ async function criarGasto(req, res) {
       .input('tipo', tipo)
       .input('descricao', descricao)
       .input('valor', valor)
-      .input('dataCriacao', dataCriacao)
+      //.input('dataCriacao', dataCriacao)
       .input('repeticao', repeticao)
       .input('dataInicio', dataInicio)
       .input('dataFinal', dataFinal)
@@ -22,7 +22,7 @@ async function criarGasto(req, res) {
       .input('tipoJuros', tipoJuros)
       .query(`
         INSERT INTO simpleCash.Gasto (idUsuario, tipo, descricao, valor, dataCriacao, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros)
-        VALUES (@idUsuario, @tipo, @descricao, @valor, @dataCriacao, @repeticao, @dataInicio, @dataFinal, @quantidadeDeParcelas, @juros, @tipoJuros)
+        VALUES (@idUsuario, @tipo, @descricao, @valor, GETDATE(), @repeticao, @dataInicio, @dataFinal, @quantidadeDeParcelas, @juros, @tipoJuros)
       `);
 
     // 2. Atualizar saldo do usuário
