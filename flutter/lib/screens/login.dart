@@ -22,13 +22,17 @@ class _LoginScreen extends State<Login> {
       bool sucesso = await authService.login(email, senha); /// chama o método login dessa classe
 
       if (sucesso) { 
-      /// se o login estiver correto
-      ScaffoldMessenger.of(context).showSnackBar( 
-        const SnackBar(content: Text("Login realizado com sucesso!")),
-      );
-      //// aqui futuramente irá mandar para uma nova tela //
-      // Navigator.pushReplacementNamed(context, "/home");
-      
+        /// se o login estiver correto
+        ScaffoldMessenger.of(context).showSnackBar( 
+          const SnackBar(content: Text("Login realizado com sucesso!")),
+        );
+        /// aqui irá mandar para a tela Home
+        Navigator.pushReplacementNamed(
+          context,
+          "/home",
+          arguments: email, /// parâmetro: email será passado para a tela home
+        );
+
       } else { // falha no login
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Email ou senha incorretos.")),
