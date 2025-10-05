@@ -36,13 +36,19 @@ class _CadastroScreen extends State<Cadastro>{
       }
       else{ 
         bool sucesso = await authService.cadastro(nome, email, senha, saldoTotal);
-        /// aqui futuramente irá mandar para uma nova tela se for cadastrado corretamente
-        // Navigator.pushReplacementNamed(context, "/home");
+
         if(sucesso){
           ScaffoldMessenger.of(context).showSnackBar( 
-          const SnackBar(content: Text("Conta criada com sucesso!")),
-        );
-      } 
+            const SnackBar(content: Text("Conta criada com sucesso!")),
+          );
+
+          /// aqui irá mandar para a tela Home
+          Navigator.pushReplacementNamed(
+            context,
+            "/home",
+            arguments: email /// parâmetro: email será passado para a tela home
+          );
+        } 
         else {
           ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Erro ao criar conta. Tente novamente.")),

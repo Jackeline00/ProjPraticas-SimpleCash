@@ -106,6 +106,28 @@ async function buscarNome(req, res) {
   }
 }
 
+// Buscar saldo por email
+async function buscarSaldo(req, res) {
+  const { email } = req.params;
+
+  try{
+    const pool = await conectaBD();
+    const result = await pool.request()
+      .input("email", email)
+      .query("SELECT saldoTotal FROM simpleCash.Usuario WHERE email = @email");
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    res.json(result.recordset[0]);
+  }
+  catch (err){
+    console.error(err);
+    res.status(500).json({error: "Erro ao buscar o saldo total do usuário."});
+  }
+}
+
 // Atualizar usuário
 async function atualizarUsuario(req, res) {
   const { id } = req.params;
@@ -214,6 +236,8 @@ module.exports = {
   listarUsuarios,
   buscarUsuario,
   buscarPorEmail,
+  buscarNome,
+  buscarSaldo,
   atualizarUsuario,
   deletarUsuario,
   loginUsuario

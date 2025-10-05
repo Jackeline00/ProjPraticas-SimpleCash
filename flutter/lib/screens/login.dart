@@ -30,7 +30,7 @@ class _LoginScreen extends State<Login> {
         Navigator.pushReplacementNamed(
           context,
           "/home",
-          arguments: email, /// parâmetro: email será passado para a tela home
+          arguments: email /// parâmetro: email será passado para a tela home
         );
 
       } else { // falha no login

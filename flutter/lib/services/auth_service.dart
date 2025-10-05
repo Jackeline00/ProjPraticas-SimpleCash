@@ -86,6 +86,20 @@ class AuthService { /// classe que possui métodos de autenticação
     }
   }
 
+  Future<String?> buscarSaldo(String email) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/usuarios/saldo/$email'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['saldoAtual'];
+    } else {
+      return null;
+    }
+  }
+
 
   Future<bool> apagarConta(String email) async{
       final response = await http.delete(

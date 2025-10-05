@@ -11,11 +11,14 @@ router.get('/', usuarioController.listarUsuarios);
 // Buscar usuário por ID
 router.get('/:id', usuarioController.buscarUsuario);
 
-//Buscar usuário por email
+// Buscar usuário por email
 router.get('/:email', usuarioController.buscarPorEmail);
 
-//Buscar nome do usuário por email
+// Buscar nome do usuário por email
 router.get('/nome/:email', usuarioController.buscarNome);
+
+// Buscar saldo do usuário por email
+router.get('/saldo/:email', usuarioController.buscarSaldo);
 
 // Atualizar usuário
 router.put('/:id', usuarioController.atualizarUsuario);

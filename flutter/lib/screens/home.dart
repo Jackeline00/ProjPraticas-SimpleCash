@@ -8,26 +8,38 @@ class Home extends StatefulWidget{
   State<Home> createState() => _HomeScreen();
 }
 
-/// variável global
-String? nomeUsuario;
-
 class _HomeScreen extends State<Home>{
   /// variáveis
-  
+  String? nomeUsuario;
+  double? saldoAtual;
 
-  /// métodos dos botões
-  void carregarNomeUsuario() async {
+  /// métodos de buscar dados
+  void carregarNomeUsuario(String email) async {
     final authService = AuthService();
-    final nome = await authService.buscarNomeUsuario(emailUsuarioAtual);
+    final nome = await authService.buscarNomeUsuario(email);
     setState(() {
       nomeUsuario = nome;
     });
   }
 
+  void carregarSaldoUsuario(String email) async {
+    final authService = AuthService();
+    final saldo = await authService.buscarSaldo(email);
+    setState(() {
+      saldoAtual = saldo;
+    });
+  }
+
   /// tela
-  
   @override
   Widget build(BuildContext context) {
+    /// recupera o email passado via Navigator
+    final email = ModalRoute.of(context)!.settings.arguments as String;
+
+    /// chama o método passando o email
+    if (nomeUsuario == null) {
+      carregarNomeUsuario(email);
+    }
     return Scaffold( 
       /// Cabeçalho da tela
       //
@@ -38,7 +50,7 @@ class _HomeScreen extends State<Home>{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔧 Ícone de configurações no topo direito
+              /// ícone de configurações no topo direito
               Align(
                 alignment: Alignment.topRight,
                 child: IconButton(
@@ -58,8 +70,8 @@ class _HomeScreen extends State<Home>{
               /// Linha com nome do app e saudação
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "SimpleCash",
                     style: TextStyle(
                       fontSize: 26,
@@ -69,7 +81,7 @@ class _HomeScreen extends State<Home>{
                   ),
                   Text(
                     nomeUsuario != null ? "Olá, $nomeUsuario" : "Olá, usuário",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       color: Color(0xFF8EC1F3),
                     ),
