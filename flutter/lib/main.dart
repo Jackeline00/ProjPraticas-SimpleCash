@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         /// fontFamily: '',  COLOCAR AQUI A FONTE PARA TODO O APP
       ),
-      initialRoute: "/login",        /// primeira tela que vai abrir
+      initialRoute: "/home",        /// primeira tela que vai abrir
       
       routes: {
         "/login": (context) => const Login(),

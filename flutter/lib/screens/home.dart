@@ -26,7 +26,7 @@ class _HomeScreen extends State<Home>{
     final authService = AuthService();
     final saldo = await authService.buscarSaldo(email);
     setState(() {
-      saldoAtual = saldo;
+      saldoAtual = saldo as double?; /// tenta converter para double 
     });
   }
 
@@ -34,7 +34,10 @@ class _HomeScreen extends State<Home>{
   @override
   Widget build(BuildContext context) {
     /// recupera o email passado via Navigator
-    final email = ModalRoute.of(context)!.settings.arguments as String;
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    final email = args is String ? args : '';
+
 
     /// chama o método passando o email
     if (nomeUsuario == null) {
@@ -46,7 +49,7 @@ class _HomeScreen extends State<Home>{
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0), // espaçamento geral
+          padding: const EdgeInsets.all(20.0), // espaçamento geral
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -90,12 +93,189 @@ class _HomeScreen extends State<Home>{
               ),
 
               const SizedBox(height: 20),
+
+// ------------------------------------------------------------------------------------------------
               /// Corpo da tela 
               /// 
-              
-            
+              Padding(
+                padding: const EdgeInsets.all(32.0), /// espaçamento
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Saldo atual",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
 
+                    const SizedBox(height: 8),
 
+                    Text(
+                      saldoAtual != null ? "R\$ ${saldoAtual!.toStringAsFixed(2)}" : "R\$ 0,00",
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0D4590),
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+
+//-------------------------------------------------------------------------------------------------
+              /// Linha ou divisão
+              ///
+              const Divider(
+                color: Colors.grey,     
+                thickness: 1,            /// espessura da linha
+                height: 20,              /// altura do espaço vertical em volta da linha
+                indent: 0,               /// recuo da esquerda
+                endIndent: 0,            /// recuo da direita
+              ),
+
+              Center(
+                child:
+                Padding(padding: const EdgeInsets.all(32.0),
+                  child:  
+                  Column(
+                    children: [    
+                      SizedBox(
+                        width: 200,
+                        child: /// largura fixa para todos os botões
+                          ElevatedButton(
+                            onPressed: () {  /// ação ao clicar
+                              Navigator.pushNamed(context, '/gastos'); /// manda para a tela de gastos
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0D4590), /// cor de fundo
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12), /// deixa as bordas arredondadas
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), /// tamanho do botão
+                            ),
+                            child: const Text(
+                              "Gastos",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white, /// cor do texto
+                              ),
+                            ),
+                          ),
+                      ),
+
+                      const SizedBox(height: 14), 
+
+                      SizedBox(
+                        width: 200,
+                        child: /// largura fixa para todos os botões
+                          ElevatedButton(
+                            onPressed: () {/// ação ao clicar
+                              Navigator.pushNamed(context, '/ganhos'); /// envia para a tela de ganhos
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0D4590), /// cor de fundo
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12), /// deixa as bordas arredondadas
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), /// tamanho do botão
+                            ),
+                            child: const Text(
+                              "Ganhos",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white, /// cor do texto
+                              ),
+                            ),
+                          ),
+                      ),
+
+                      const SizedBox(height: 14), 
+
+                      SizedBox(
+                        width: 200,
+                        child: /// largura fixa para todos os botões
+                          ElevatedButton(
+                            onPressed: () {/// ação ao clicar
+                              Navigator.pushNamed(context, '/poupanca'); /// envia para a tela de poupanças
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0D4590), /// cor de fundo
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12), /// deixa as bordas arredondadas
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), /// tamanho do botão
+                            ),
+                            child: const Text(
+                              "Poupanças",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white, /// cor do texto
+                              ),
+                            ),
+                          ),
+                      ),
+
+                      const SizedBox(height: 18), 
+
+                      SizedBox(
+                        width: 200,
+                        child: /// largura fixa para todos os botões
+                          ElevatedButton(
+                            onPressed: () {/// ação ao clicar
+                              Navigator.pushNamed(context, '/relatorio'); // manda para a tela de relatorios
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white, /// cor de fundo
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12), /// deixa as bordas arredondadas
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), /// tamanho do botão
+                            ),
+                            child: const Text(
+                              "Relatórios",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Color(0xFF0D4590), /// cor do texto
+                              ),
+                            ),
+                          ),
+                      ),
+
+                      const SizedBox(height: 14), 
+
+                      SizedBox(
+                        width: 200,
+                        child: /// largura fixa para todos os botões
+                          ElevatedButton(
+                            onPressed: () {/// ação ao clicar
+                              Navigator.pushNamed(context, '/historico'); /// manda para a tela de histórico
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white, /// cor de fundo
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12), /// deixa as bordas arredondadas
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), /// tamanho do botão
+                            ),
+                            child: const Text(
+                              "Histórico",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Color(0xFF0D4590), /// cor do texto
+                              ),
+                            ),
+                          )
+                      )
+
+                    ],
+                    )
+                  ),
+              )
+                  
 
 
             ],
