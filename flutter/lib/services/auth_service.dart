@@ -40,9 +40,9 @@ class AuthService { /// classe que possui métodos de autenticação
     }
   }
 
-  Future<bool> editar(int id, String nome, String email, String senha) async{
+  Future<bool> editar(String emailPk, String nome, String email, String senha) async{
     final response = await http.put(
-      Uri.parse('$baseUrl/usuarios/$id'),
+      Uri.parse('$baseUrl/usuarios/$emailPk'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "nome": nome,
@@ -81,6 +81,20 @@ class AuthService { /// classe que possui métodos de autenticação
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['nome'];
+    } else {
+      return null;
+    }
+  }
+
+  Future<String?> buscarSenhaUsuario(String email) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/usuarios/senha/$email'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['senha'];
     } else {
       return null;
     }

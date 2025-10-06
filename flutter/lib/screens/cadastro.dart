@@ -51,8 +51,8 @@ class _CadastroScreen extends State<Cadastro>{
         } 
         else {
           ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Erro ao criar conta. Tente novamente.")),
-        );
+            const SnackBar(content: Text("Erro ao criar conta. Tente novamente.")),
+          );
         }
       }
     }

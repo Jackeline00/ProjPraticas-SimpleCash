@@ -35,7 +35,6 @@ class _HomeScreen extends State<Home>{
   Widget build(BuildContext context) {
     /// recupera o email passado via Navigator
     final args = ModalRoute.of(context)?.settings.arguments;
-
     final email = args is String ? args : '';
 
 
@@ -63,7 +62,9 @@ class _HomeScreen extends State<Home>{
                     height: 28,
                   ),
                   onPressed: () {
-                    Navigator.pushNamed(context, '/configuracao'); /// leva pra outra tela
+                    Navigator.pushNamed(context, '/configuracao', arguments: email); /// leva pra outra tela
+                    
+
                   },
                 ),
               ),

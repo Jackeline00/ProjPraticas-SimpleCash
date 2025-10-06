@@ -106,6 +106,28 @@ async function buscarNome(req, res) {
   }
 }
 
+// Buscar senha por email
+async function buscarSenha(req, res) {
+  const { email } = req.params;
+
+  try{
+    const pool = await conectaBD();
+    const result = await pool.request()
+      .input("email", email)
+      .query("SELECT senha FROM simpleCash.Usuario WHERE email = @email");
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    res.json(result.recordset[0]);
+  }
+  catch (err){
+    console.error(err);
+    res.status(500).json({error: "Erro ao buscar a senha do usuário."});
+  }
+}
+
 // Buscar saldo por email
 async function buscarSaldo(req, res) {
   const { email } = req.params;
@@ -130,13 +152,13 @@ async function buscarSaldo(req, res) {
 
 // Atualizar usuário
 async function atualizarUsuario(req, res) {
-  const { id } = req.params;
+  const { emailPk } = req.params;
   const { nome, email, senha } = req.body;
 
   try {
     const pool = await conectaBD();
     await pool.request()
-      .input("idUsuario", id)
+      .input("emailPk", emailPk)
       .input("nome", nome)
       .input("email", email)
       .input("senha", senha)
@@ -145,7 +167,7 @@ async function atualizarUsuario(req, res) {
         SET nome = @nome,
             email = @email,
             senha = @senha
-        WHERE idUsuario = @idUsuario
+        WHERE email = @emailPk
       `);
 
     res.json({ message: "Dados do usuário atualizados com sucesso!" });
@@ -237,6 +259,7 @@ module.exports = {
   buscarUsuario,
   buscarPorEmail,
   buscarNome,
+  buscarSenha,
   buscarSaldo,
   atualizarUsuario,
   deletarUsuario,
