@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
+/// Tela quase pronta
+/// Ainda não funciona corretamente
+//
+
 class Configuracao extends StatefulWidget {
   const Configuracao({super.key});
 
