@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
-import '../services/historico_service.dart';
 
-/// Tela iniciada, mas ainda falta tudo
+/// Tela iniciada, mas ainda falta tudo 
 //
 
-class Historico extends StatefulWidget{
-  const Historico({super.key});
+class Gastos extends StatefulWidget{
+  const Gastos({super.key});
 
   @override
-  State<Historico> createState() => _HistoricoScreen();
+  State<Gastos> createState() => _GastosScreen();
 }
 
-class _HistoricoScreen extends State<Historico>{
+class _GastosScreen extends State<Gastos>{
   //
-
-
-
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -42,7 +38,7 @@ class _HistoricoScreen extends State<Historico>{
                       ),
                       const Center(
                         child: Text(
-                          "Histórico",
+                          "Gastos",
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -61,9 +57,9 @@ class _HistoricoScreen extends State<Historico>{
                        ///// o que vai acontecer ao precionar o botão "Filtrar"
                       },
                       child: const Text(
-                        "Filtrar",
+                        "Novo gasto +",
                         style: TextStyle(
-                          color: Color.fromARGB(255, 108, 153, 252),
+                          color: Color.fromARGB(255, 13, 69, 144),
                         ),
                       ),
                     ),
@@ -77,10 +73,33 @@ class _HistoricoScreen extends State<Historico>{
                     ],
                   ),
 
+                  const SizedBox(height: 40),
+
+                  Row(children: [
+                    Center(child: 
+                         ElevatedButton(
+                          onPressed: () {
+                          ///// o que vai acontecer ao precionar o botão "Filtrar"
+                          },
+                          child: const Text(
+                            "Acessar histórico",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 13, 69, 144),
+                            ),
+                          ),
+                        ),
+                      )
+
+                    ],
+                  ),
 
                   const SizedBox(height: 40),
 
-
+                  Column(
+                    children: [
+                      /// onde aparecerá a lista dos gastos
+                    ],
+                  )
 
                 ],
               ),
