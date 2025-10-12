@@ -4,6 +4,7 @@ import 'screens/cadastro.dart';
 import 'screens/home.dart';
 import 'screens/configuracao.dart';
 import 'screens/gastos.dart';
+import 'screens/ganhos.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         /// fontFamily: '',  COLOCAR AQUI A FONTE PARA TODO O APP
       ),
-      initialRoute: "/gastos",        /// primeira tela que vai abrir
+      initialRoute: "/home",        /// primeira tela que vai abrir
       
       routes: {
         "/login": (context) => const Login(),
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         "/home": (context) => const Home(),
         "/configuracao": (context) => const Configuracao(),
         "/gastos": (context) => const Gastos(),
+        "/ganhos": (context) => const Ganhos(),
       },
     );
   }

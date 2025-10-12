@@ -84,6 +84,28 @@ async function buscarPorEmail(req, res) {
   }
 }
 
+// Buscar id por email
+async function buscarId(req, res) {
+  const { email } = req.params;
+
+  try{
+    const pool = await conectaBD();
+    const result = await pool.request()
+      .input("email", email)
+      .query("SELECT idUsuario FROM simpleCash.Usuario WHERE email = @email");
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    res.json(result.recordset[0]);
+  }
+  catch (err){
+    console.error(err);
+    res.status(500).json({error: "Erro ao buscar o id do usuário."});
+  }
+}
+
 // Buscar nome por email
 async function buscarNome(req, res) {
   const { email } = req.params;
@@ -258,6 +280,7 @@ module.exports = {
   listarUsuarios,
   buscarUsuario,
   buscarPorEmail,
+  buscarId,
   buscarNome,
   buscarSenha,
   buscarSaldo,

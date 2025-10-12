@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
-import '../services/gasto_service.dart'; /// serviço que faz a requisição GET
+import '../services/auth_service.dart';
+import '../services/ganho_service.dart'; // serviço que faz a requisição GET
 
 /// Tela em fase de testes
 //
 
-class Gastos extends StatefulWidget {
-  const Gastos({super.key});
+class Ganhos extends StatefulWidget {
+  const Ganhos({super.key});
 
   @override
-  State<Gastos> createState() => _GastosScreen();
+  State<Ganhos> createState() => _GanhosScreen();
 }
 
-class _GastosScreen extends State<Gastos> {
-  late Future<List<dynamic>> _gastosFuture; /// lista futura de gastos
+class _GanhosScreen extends State<Ganhos> {
+  late Future<List<dynamic>> _gastosFuture; /// lista futura de ganhos
   late String email;
+  late int idUsuario;
+
+  /// método de buscar dados
+  void carregarIdUsuario(String email) async {
+    final authService = AuthService();
+    final id = await authService.buscarIdUsuario(email);
+    setState(() {
+      idUsuario = id as int;
+    });
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    /// Recupera o email passado via Navigator (só é possível aqui, pois o context já existe)
+    // Recupera o email passado via Navigator (só é possível aqui, pois o context já existe)
     final args = ModalRoute.of(context)?.settings.arguments;
-    final email = args is String ? args : '';
+    email = args is String ? args : '';
 
-    /// Chama o método de busca no service
-    final service = GastoService();
-    _gastosFuture = service.buscarGastos(email);
+    // Chama o método de busca no service
+    final service = GanhoService();
+    _gastosFuture = service.mostrarGanhos(idUsuario) as Future<List>;
   }
 
   @override
@@ -56,7 +67,7 @@ class _GastosScreen extends State<Gastos> {
                 ),
                 const Center(
                   child: Text(
-                    "Gastos",
+                    "Ganhos",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -69,7 +80,7 @@ class _GastosScreen extends State<Gastos> {
 
             const SizedBox(height: 30),
 
-            /// ------ Botão Novo Gasto ------
+            /// ------ Botão novo ganho ------
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -86,7 +97,7 @@ class _GastosScreen extends State<Gastos> {
                     /// Navigator.pushNamed(context, '/adicionarGasto', arguments: email); /// leva pra outra tela
                   },
                   child: const Text(
-                    "Novo gasto +",
+                    "Novo ganho +",
                     style: TextStyle(
                       color: Color.fromARGB(255, 230, 232, 234),
                       fontSize: 20,
@@ -125,7 +136,7 @@ class _GastosScreen extends State<Gastos> {
 
             const SizedBox(height: 30),
 
-            /// ------ Lista de gastos ------
+            /// ------ Lista de ganhos ------
             Expanded(
               child: FutureBuilder<List<dynamic>>(
                 future: _gastosFuture,
@@ -134,10 +145,10 @@ class _GastosScreen extends State<Gastos> {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     return const Center(
-                        child: Text("Erro ao carregar os gastos."));
+                        child: Text("Erro ao carregar os ganhos."));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
-                        child: Text("Nenhum gasto encontrado."));
+                        child: Text("Nenhum ganho encontrado."));
                   }
 
                   final gastos = snapshot.data!;
@@ -179,7 +190,7 @@ class _GastosScreen extends State<Gastos> {
                                   height: 22,
                                 ),
                                 onPressed: () {
-                                  // TODO: ação para editar o gasto
+                                  // TODO: ação para editar o ganho
                                 },
                               ),
                               IconButton(
@@ -189,7 +200,7 @@ class _GastosScreen extends State<Gastos> {
                                   height: 22,
                                 ),
                                 onPressed: () {
-                                  // TODO: ação para excluir o gasto
+                                  // TODO: ação para excluir o ganho
                                 },
                               ),
                             ],

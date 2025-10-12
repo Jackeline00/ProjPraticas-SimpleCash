@@ -14,6 +14,9 @@ router.get('/:id', usuarioController.buscarUsuario);
 // Buscar usuário por email
 router.get('/:email', usuarioController.buscarPorEmail);
 
+// Buscar id do usuário por email
+router.get('/id/:email', usuarioController.buscarId);
+
 // Buscar nome do usuário por email
 router.get('/nome/:email', usuarioController.buscarNome);
 

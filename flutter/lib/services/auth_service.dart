@@ -72,6 +72,20 @@ class AuthService { /// classe que possui métodos de autenticação
 
   }
 
+  Future<String?> buscarIdUsuario(String email) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/usuarios/id/$email'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['idUsuario'];
+    } else {
+      return null;
+    }
+  }
+
   Future<String?> buscarNomeUsuario(String email) async {
     final response = await http.get(
       Uri.parse('$baseUrl/usuarios/nome/$email'),

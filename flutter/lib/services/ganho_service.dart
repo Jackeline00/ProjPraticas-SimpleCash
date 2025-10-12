@@ -24,6 +24,18 @@ class GanhoService {
     }
   }
 
+  /// Lista de ganhos de um usuário por email
+  Future<List<dynamic>> buscarGanhos(String email) async {
+    final response = await http.get(Uri.parse('$baseUrl/ganhos/$email'));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erro ao buscar ganhos');
+    }
+  }
+
+
   Future<bool> mostrarGanhos(int idUsuario) async{
     final response = await http.get(
       Uri.parse('$baseUrl/ganhos/$idUsuario'),
