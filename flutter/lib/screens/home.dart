@@ -63,8 +63,6 @@ class _HomeScreen extends State<Home>{
                   ),
                   onPressed: () {
                     Navigator.pushNamed(context, '/configuracao', arguments: email); /// leva pra outra tela
-                    
-
                   },
                 ),
               ),
@@ -149,7 +147,7 @@ class _HomeScreen extends State<Home>{
                         child: /// largura fixa para todos os botões
                           ElevatedButton(
                             onPressed: () {  /// ação ao clicar
-                              Navigator.pushNamed(context, '/gastos'); /// manda para a tela de gastos
+                              Navigator.pushNamed(context, '/gastos', arguments: email); /// manda para a tela de gastos
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0D4590), /// cor de fundo
@@ -175,7 +173,7 @@ class _HomeScreen extends State<Home>{
                         child: /// largura fixa para todos os botões
                           ElevatedButton(
                             onPressed: () {/// ação ao clicar
-                              Navigator.pushNamed(context, '/ganhos'); /// envia para a tela de ganhos
+                              Navigator.pushNamed(context, '/ganhos', arguments: email); /// envia para a tela de ganhos
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0D4590), /// cor de fundo
@@ -201,7 +199,7 @@ class _HomeScreen extends State<Home>{
                         child: /// largura fixa para todos os botões
                           ElevatedButton(
                             onPressed: () {/// ação ao clicar
-                              Navigator.pushNamed(context, '/poupanca'); /// envia para a tela de poupanças
+                              Navigator.pushNamed(context, '/poupanca', arguments: email); /// envia para a tela de poupanças
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0D4590), /// cor de fundo
@@ -253,7 +251,7 @@ class _HomeScreen extends State<Home>{
                         child: /// largura fixa para todos os botões
                           ElevatedButton(
                             onPressed: () {/// ação ao clicar
-                              Navigator.pushNamed(context, '/historico'); /// manda para a tela de histórico
+                              Navigator.pushNamed(context, '/historico', arguments: email); /// manda para a tela de histórico
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white, /// cor de fundo
