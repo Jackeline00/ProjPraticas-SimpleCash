@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/login.dart';
 import 'screens/cadastro.dart';
 import 'screens/home.dart';
@@ -20,7 +21,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, /// tira o DEBUG das telas na execução
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        /// fontFamily: '',  COLOCAR AQUI A FONTE PARA TODO O APP
+        textTheme: GoogleFonts.interTextTheme( /// fonte usada em todo o app
+          Theme.of(context).textTheme,
+        ),
       ),
       initialRoute: "/home",        /// primeira tela que vai abrir
       

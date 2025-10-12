@@ -36,7 +36,7 @@ class _GanhosScreen extends State<Ganhos> {
 
     // Chama o método de busca no service
     final service = GanhoService();
-    _gastosFuture = service.mostrarGanhos(idUsuario) as Future<List>;
+    _gastosFuture = service.mostrarGanhos(idUsuario);
   }
 
   @override

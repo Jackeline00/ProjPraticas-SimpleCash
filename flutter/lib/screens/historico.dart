@@ -55,7 +55,9 @@ class _HistoricoScreen extends State<Historico>{
 
                   const SizedBox(height: 40),
 
-                  Row(children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
                     ElevatedButton(
                       onPressed: () {
                        ///// o que vai acontecer ao precionar o botão "Filtrar"
@@ -72,8 +74,10 @@ class _HistoricoScreen extends State<Historico>{
 
                   const SizedBox(height: 40),
 
-                  Row(children: [
-                    /// onde aparecerão os filtros selecionados se existirem
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      /// onde aparecerão os filtros selecionados se existirem
                     ],
                   ),
 

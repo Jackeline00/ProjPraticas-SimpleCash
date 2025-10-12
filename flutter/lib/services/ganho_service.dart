@@ -36,16 +36,17 @@ class GanhoService {
   }
 
 
-  Future<bool> mostrarGanhos(int idUsuario) async{
+  Future<List<dynamic>> mostrarGanhos(int idUsuario) async {
     final response = await http.get(
       Uri.parse('$baseUrl/ganhos/$idUsuario'),
       headers: {"Content-Type": "application/json"},
     );
 
-     if(response.statusCode == 201){
-      return true;
-    }else{
-      return false;
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data; /// supondo que o backend retorne uma lista de ganhos
+    } else {
+      throw Exception('Erro ao carregar ganhos (status: ${response.statusCode})');
     }
   }
 
