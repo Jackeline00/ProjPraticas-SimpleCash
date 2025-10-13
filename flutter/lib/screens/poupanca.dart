@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/poupanca_service.dart'; // serviço que faz GET e POST dos dados de poupança
-import 'novo_deposito_page.dart'; // tela para adicionar novo depósito
 import 'package:fl_chart/fl_chart.dart'; // biblioteca para o gráfico de barras
 
 class PoupancaPage extends StatefulWidget {
