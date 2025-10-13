@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../services/gasto_service.dart'; /// serviço que faz a requisição GET
 
 /// Tela em fase de testes
+/// ainda não funciona totalmente
 //
 
 class Gastos extends StatefulWidget {
@@ -12,24 +14,64 @@ class Gastos extends StatefulWidget {
 }
 
 class _GastosScreen extends State<Gastos> {
-  late Future<List<dynamic>> _gastosFuture; /// lista futura de gastos
-  late String email;
+  Future<List<dynamic>> _gastosFuture = Future.value([]);
+  String email = '';
+  int? idUsuario;
 
   @override
   void didChangeDependencies() {
+    print("E-mail recebido: $email");
+
     super.didChangeDependencies();
 
-    /// Recupera o email passado via Navigator (só é possível aqui, pois o context já existe)
     final args = ModalRoute.of(context)?.settings.arguments;
-    final email = args is String ? args : '';
+    email = args is String ? args : '';
 
-    /// Chama o método de busca no service
+    _carregarGastos(); // chama a função separada que busca tudo certinho
+  }
+
+  void _carregarGastos() async {
+    final authService = AuthService();
+    final id = await authService.buscarIdUsuario(email);
+
+    if (id != null) {
+      setState(() {
+        idUsuario = id as int?;
+        _gastosFuture = GastoService().mostrarDescricoes(idUsuario!);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erro ao recuperar ID do usuário.")),
+      );
+    }
+  }
+
+
+  void _deletarGasto(idGasto) async {
     final service = GastoService();
-    _gastosFuture = service.buscarGastos(email);
+    final apagou = await service.deletarGasto(idGasto);
+    if(apagou){
+      ScaffoldMessenger.of(context).showSnackBar( 
+        const SnackBar(content: Text("Dado deletado com sucesso.")),
+      );
+    }
+    else{
+      ScaffoldMessenger.of(context).showSnackBar( 
+        const SnackBar(content: Text("Falha ao deletar o dado")),
+      );
+    }
+
   }
 
   @override
   Widget build(BuildContext context) {
+
+    if (idUsuario == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -83,7 +125,7 @@ class _GastosScreen extends State<Gastos> {
                     ),
                   ),
                   onPressed: () {
-                    /// Navigator.pushNamed(context, '/adicionarGasto', arguments: email); /// leva pra outra tela
+                    Navigator.pushNamed(context, '/adicionarGasto', arguments: email); /// leva pra outra tela
                   },
                   child: const Text(
                     "Novo gasto +",
@@ -111,8 +153,8 @@ class _GastosScreen extends State<Gastos> {
                   ),
                 ),
                 onPressed: () {
-                  /// TODO: ação do botão "Acessar histórico"
-                },
+                    Navigator.pushNamed(context, '/historico', arguments: email); /// leva pra outra tela
+                  },
                 child: const Text(
                   "Acessar histórico",
                   style: TextStyle(
@@ -179,7 +221,7 @@ class _GastosScreen extends State<Gastos> {
                                   height: 22,
                                 ),
                                 onPressed: () {
-                                  // TODO: ação para editar o gasto
+                                  Navigator.pushNamed(context, '/editarGasto', arguments: email); /// leva pra outra tela
                                 },
                               ),
                               IconButton(
@@ -188,9 +230,9 @@ class _GastosScreen extends State<Gastos> {
                                   width: 22,
                                   height: 22,
                                 ),
-                                onPressed: () {
+                                onPressed: () => _deletarGasto(gasto["idGasto"]),
                                   // TODO: ação para excluir o gasto
-                                },
+                                
                               ),
                             ],
                           ),

@@ -29,7 +29,7 @@ class GastoService {
     }
   }
 
-  /// Lista dinâmica de gastos de uma usuário
+  /// Lista dinâmica de gastos de uma usuário (se tudo der certo esse método vai deixar de existir)
   Future<List<dynamic>> buscarGastos(String email) async {
     final response = await http.get(Uri.parse('$baseUrl/gastos/$email'));
 
@@ -40,16 +40,29 @@ class GastoService {
     }
   }
 
-  Future<bool> mostrarGastos(int idUsuario) async{
+  Future<List<dynamic>> mostrarGastos(int idUsuario) async {
     final response = await http.get(
       Uri.parse('$baseUrl/gastos/$idUsuario'),
       headers: {"Content-Type": "application/json"},
     );
 
-     if(response.statusCode == 201){
-      return true;
-    }else{
-      return false;
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erro ao buscar gastos');
+    }
+  }
+
+  Future<List<dynamic>> mostrarDescricoes(int idUsuario) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/gastos/descricao/$idUsuario'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erro ao buscar descrições dos gastos');
     }
   }
 
