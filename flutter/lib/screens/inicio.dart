@@ -1,9 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-
-/// Alguém faz aí
-/// Essa tela vai ter o nome do aplicativo, a imagem do porquinho se existir e
-/// depois de tantos segundos vai mudar sozinho para a tela de login ou cadastro
+import 'login.dart'; // substitua pelo nome correto da sua tela de login/cadastro
+import 'home.dart'; // substitua pelo nome correto da sua tela principal
 
 void main() {
   runApp(const Inicio());
@@ -15,8 +14,8 @@ class Inicio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const CentralizedScreen(),
       debugShowCheckedModeBanner: false,
+      home: const CentralizedScreen(),
     );
   }
 }
@@ -29,13 +28,31 @@ class CentralizedScreen extends StatefulWidget {
 }
 
 class _CentralizedScreenState extends State<CentralizedScreen> {
+  final AuthService _authService = AuthService();
+
   @override
   void initState() {
     super.initState();
 
-    // 🔹 Espera 3 segundos antes de trocar para o login
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, "/login");
+    // Pequeno delay pra exibir o splash e verificar login
+    Timer(const Duration(seconds: 2), () async {
+      bool logado = await _authService.estaLogado();
+
+      if (!mounted) return; // evita erro se o widget for destruído antes
+
+      if (logado) {
+        // Usuário já está logado → vai pra home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Home()),
+        );
+      } else {
+        // Usuário ainda não logado → vai pra tela de login/cadastro
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Login()),
+        );
+      }
     });
   }
 
@@ -58,7 +75,7 @@ class _CentralizedScreenState extends State<CentralizedScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const CircularProgressIndicator(), // animação enquanto carrega
+            const CircularProgressIndicator(),
           ],
         ),
       ),
