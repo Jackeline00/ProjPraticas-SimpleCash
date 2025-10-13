@@ -6,6 +6,7 @@ import 'screens/home.dart';
 import 'screens/configuracao.dart';
 import 'screens/gastos.dart';
 import 'screens/ganhos.dart';
+import 'screens/inicio.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,15 +19,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SimpleCash',
-      debugShowCheckedModeBanner: false, /// tira o DEBUG das telas na execução
+      debugShowCheckedModeBanner: false,
+
+      /// tira o DEBUG das telas na execução
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: GoogleFonts.interTextTheme( /// fonte usada em todo o app
+        textTheme: GoogleFonts.interTextTheme(
+          /// fonte usada em todo o app
           Theme.of(context).textTheme,
         ),
       ),
-      initialRoute: "/home",        /// primeira tela que vai abrir
-      
+      home: const Inicio(),
+
+      /// primeira tela que vai abrir
       routes: {
         "/login": (context) => const Login(),
         "/cadastro": (context) => const Cadastro(),
