@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../services/gasto_service.dart'; /// serviço que faz a requisição GET
 
 /// Tela em fase de testes
+/// ainda não funciona
 //
 
 class Gastos extends StatefulWidget {
@@ -14,6 +16,7 @@ class Gastos extends StatefulWidget {
 class _GastosScreen extends State<Gastos> {
   late Future<List<dynamic>> _gastosFuture; /// lista futura de gastos
   late String email;
+  late int idUsuario;
 
   @override
   void didChangeDependencies() {
@@ -23,9 +26,33 @@ class _GastosScreen extends State<Gastos> {
     final args = ModalRoute.of(context)?.settings.arguments;
     final email = args is String ? args : '';
 
+    /// pega id do usuário
+    void carregarIdUsuario(String email) async {
+      final authService = AuthService();
+      final id = await authService.buscarIdUsuario(email);
+      setState(() {
+        idUsuario = id as int;
+      });
+    }
+
     /// Chama o método de busca no service
     final service = GastoService();
-    _gastosFuture = service.buscarGastos(email);
+    _gastosFuture = service.mostrarGastos(idUsuario) as Future<List>;
+  }
+
+  void _deletarGasto(idGasto) async {
+    final service = GastoService();
+    final apagou = await service.deletarGasto(idGasto);
+    if(apagou){
+      ScaffoldMessenger.of(context).showSnackBar( 
+        const SnackBar(content: Text("Dado deletado com sucesso.")),
+      );
+    }
+    else{
+      ScaffoldMessenger.of(context).showSnackBar( 
+        const SnackBar(content: Text("Falha ao deletar o dado")),
+      );
+    }
   }
 
   @override
@@ -83,7 +110,7 @@ class _GastosScreen extends State<Gastos> {
                     ),
                   ),
                   onPressed: () {
-                    /// Navigator.pushNamed(context, '/adicionarGasto', arguments: email); /// leva pra outra tela
+                    Navigator.pushNamed(context, '/adicionarGasto', arguments: email); /// leva pra outra tela
                   },
                   child: const Text(
                     "Novo gasto +",
@@ -111,8 +138,8 @@ class _GastosScreen extends State<Gastos> {
                   ),
                 ),
                 onPressed: () {
-                  /// TODO: ação do botão "Acessar histórico"
-                },
+                    Navigator.pushNamed(context, '/historico', arguments: email); /// leva pra outra tela
+                  },
                 child: const Text(
                   "Acessar histórico",
                   style: TextStyle(
@@ -179,7 +206,7 @@ class _GastosScreen extends State<Gastos> {
                                   height: 22,
                                 ),
                                 onPressed: () {
-                                  // TODO: ação para editar o gasto
+                                  Navigator.pushNamed(context, '/editarGasto', arguments: email); /// leva pra outra tela
                                 },
                               ),
                               IconButton(
@@ -188,9 +215,9 @@ class _GastosScreen extends State<Gastos> {
                                   width: 22,
                                   height: 22,
                                 ),
-                                onPressed: () {
+                                onPressed: () => _deletarGasto(gasto["idGasto"]),
                                   // TODO: ação para excluir o gasto
-                                },
+                                
                               ),
                             ],
                           ),

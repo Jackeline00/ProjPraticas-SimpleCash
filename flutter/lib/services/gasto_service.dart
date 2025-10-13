@@ -29,7 +29,7 @@ class GastoService {
     }
   }
 
-  /// Lista dinâmica de gastos de uma usuário
+  /// Lista dinâmica de gastos de uma usuário (se tudo der certo esse método vai deixar de existir)
   Future<List<dynamic>> buscarGastos(String email) async {
     final response = await http.get(Uri.parse('$baseUrl/gastos/$email'));
 

@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
           Theme.of(context).textTheme,
         ),
       ),
-      initialRoute: "/home",        /// primeira tela que vai abrir
+      initialRoute: "/login",        /// primeira tela que vai abrir
       
       routes: {
         "/login": (context) => const Login(),
