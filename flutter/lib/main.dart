@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: Inicio(), 
-      initialRoute: '/login', /// primeira tela que vai abrir
+      //initialRoute: '/login', /// tela para testes
 
       routes: {
         "/login": (context) => const Login(),
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         "/configuracao": (context) => const Configuracao(),
         "/gastos": (context) => const Gastos(),
         "/ganhos": (context) => const Ganhos(),
-        "/poupanca": (context) => const Poupanca(),
+        //"/poupanca": (context) => const Poupanca(),
       },
     );
   }
