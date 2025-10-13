@@ -27,7 +27,7 @@ class _GastosScreen extends State<Gastos> {
     final args = ModalRoute.of(context)?.settings.arguments;
     email = args is String ? args : '';
 
-    _carregarGastos(); // chama a função separada que busca tudo certinho
+    _carregarGastos(); 
   }
 
   void _carregarGastos() async {
