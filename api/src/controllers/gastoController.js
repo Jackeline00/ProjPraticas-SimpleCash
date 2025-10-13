@@ -59,6 +59,23 @@ async function listarGastos(req, res) {
   }
 }
 
+// Listar as descrições dos gastos de um usuário
+async function listarDescricoes(req, res) {
+  const { idUsuario } = req.params;
+
+  try {
+    const pool = await conectaBD();
+    const result = await pool.request()
+      .input('idUsuario', idUsuario)
+      .query('SELECT descricao FROM simpleCash.Gasto WHERE idUsuario = @idUsuario');
+
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar descrições dos gastos.' });
+  }
+}
+
 // Buscar gasto por ID
 async function buscarGasto(req, res) {
   const { id } = req.params;
@@ -181,6 +198,7 @@ async function deletarGasto(req, res) {
 module.exports = {
   criarGasto,
   listarGastos,
+  listarDescricoes,
   buscarGasto,
   atualizarGasto,
   deletarGasto

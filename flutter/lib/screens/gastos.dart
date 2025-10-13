@@ -3,7 +3,7 @@ import '../services/auth_service.dart';
 import '../services/gasto_service.dart'; /// serviço que faz a requisição GET
 
 /// Tela em fase de testes
-/// ainda não funciona
+/// ainda não funciona totalmente
 //
 
 class Gastos extends StatefulWidget {
@@ -14,31 +14,38 @@ class Gastos extends StatefulWidget {
 }
 
 class _GastosScreen extends State<Gastos> {
-  late Future<List<dynamic>> _gastosFuture; /// lista futura de gastos
-  late String email;
-  late int idUsuario;
+  Future<List<dynamic>> _gastosFuture = Future.value([]);
+  String email = '';
+  int? idUsuario;
 
   @override
   void didChangeDependencies() {
+    print("E-mail recebido: $email");
+
     super.didChangeDependencies();
 
-    /// Recupera o email passado via Navigator (só é possível aqui, pois o context já existe)
     final args = ModalRoute.of(context)?.settings.arguments;
-    final email = args is String ? args : '';
+    email = args is String ? args : '';
 
-    /// pega id do usuário
-    void carregarIdUsuario(String email) async {
-      final authService = AuthService();
-      final id = await authService.buscarIdUsuario(email);
-      setState(() {
-        idUsuario = id as int;
-      });
-    }
-
-    /// Chama o método de busca no service
-    final service = GastoService();
-    _gastosFuture = service.mostrarGastos(idUsuario) as Future<List>;
+    _carregarGastos(); // chama a função separada que busca tudo certinho
   }
+
+  void _carregarGastos() async {
+    final authService = AuthService();
+    final id = await authService.buscarIdUsuario(email);
+
+    if (id != null) {
+      setState(() {
+        idUsuario = id as int?;
+        _gastosFuture = GastoService().mostrarDescricoes(idUsuario!);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erro ao recuperar ID do usuário.")),
+      );
+    }
+  }
+
 
   void _deletarGasto(idGasto) async {
     final service = GastoService();
@@ -53,10 +60,18 @@ class _GastosScreen extends State<Gastos> {
         const SnackBar(content: Text("Falha ao deletar o dado")),
       );
     }
+
   }
 
   @override
   Widget build(BuildContext context) {
+
+    if (idUsuario == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       body: Container(
         width: double.infinity,
