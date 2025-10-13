@@ -33,7 +33,7 @@ class _CentralizedScreenState extends State<CentralizedScreen> {
   void initState() {
     super.initState();
 
-    // 🔹 Espera 3 segundos antes de trocar para o login
+    // Espera 3 segundos antes de trocar para o login
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pushReplacementNamed(context, "/login");
     });
