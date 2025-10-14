@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../services/auth_service.dart'; /// importa a classe AuthService
 
 /// Tela e classe responsáveis por criar usuário/conta
+/// Tela funcionando corretamente, mas o design não está correto
 //
 
 class Cadastro extends StatefulWidget{

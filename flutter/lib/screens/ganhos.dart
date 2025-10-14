@@ -3,7 +3,7 @@ import '../services/auth_service.dart';
 import '../services/ganho_service.dart'; // serviço que faz a requisição GET
 
 /// Tela em fase de testes
-//
+//  esperando a tela de gastos
 
 class Ganhos extends StatefulWidget {
   const Ganhos({super.key});

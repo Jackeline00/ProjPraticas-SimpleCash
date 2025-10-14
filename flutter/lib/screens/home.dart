@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart'; 
 import '../services/auth_service.dart'; 
 
+/// Tela funcionando 
+/// Design -> faltam imagens funcionarem e tirar aquela linha estranha da parte inferior
+//
+
 class Home extends StatefulWidget{
   const Home({super.key});
 
