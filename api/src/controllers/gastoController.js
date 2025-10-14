@@ -42,8 +42,21 @@ async function criarGasto(req, res) {
   }
 }
 
-// Listar todos os gastos de um usuário
+// Listar todos os gastos
 async function listarGastos(req, res) {
+  try {
+    const pool = await conectaBD();
+    const result = await pool.request().query("SELECT * FROM simpleCash.Gasto");
+
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao listar os gastos." });
+  }
+}
+
+// Listar todos os gastos de um usuário
+async function listarTodos(req, res) {
   const { idUsuario } = req.params;
 
   try {
@@ -197,6 +210,7 @@ async function deletarGasto(req, res) {
 
 module.exports = {
   criarGasto,
+  listarTodos,
   listarGastos,
   listarDescricoes,
   buscarGasto,

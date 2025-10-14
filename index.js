@@ -3,11 +3,11 @@ const cors = require('cors');
 require('dotenv').config();
 
 // importar rotas
-const usuarioRoutes = require('./routes/usuarioRoutes');
-const ganhosRoutes = require('./routes/ganhoRoutes');
-const gastosRoutes = require('./routes/gastoRoutes');
-const poupancaRoutes = require('./routes/poupancaRoutes');
-const historicoRoutes = require('./routes/historicoRoutes');
+const usuarioRoutes = require('./api/src/routes/usuarioRoutes');
+const ganhosRoutes = require('./api/src/routes/ganhoRoutes');
+const gastosRoutes = require('./api/src/routes/gastoRoutes');
+const poupancaRoutes = require('./api/src/routes/poupancaRoutes');
+const historicoRoutes = require('./api/src/routes/historicoRoutes');
 
 const app = express();
 
