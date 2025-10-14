@@ -2,27 +2,28 @@ const { conectaBD } = require('../db/db');
 
 // Criar gasto
 async function criarGasto(req, res) {
-  const { idUsuario, tipo, descricao, valor, dataCriacao, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros } = req.body;
+  const { idUsuario, tipo, descricao, valor, repeticao, intervaloDias, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros } = req.body;
 
   try {
     const pool = await conectaBD();
 
     // 1. Inserir ganho
     await pool.request()
-      .input('idUsuario', idUsuario)
-      .input('tipo', tipo)
-      .input('descricao', descricao)
-      .input('valor', valor)
-      //.input('dataCriacao', dataCriacao)
-      .input('repeticao', repeticao)
-      .input('dataInicio', dataInicio)
-      .input('dataFinal', dataFinal)
-      .input('quantidadeDeParcelas', quantidadeDeParcelas)
-      .input('juros', juros)
-      .input('tipoJuros', tipoJuros)
+      .input('idUsuario', idUsuario)                // int
+      .input('tipo', tipo)                          // fixo, variavel, nenhuma
+      .input('descricao', descricao)                // string
+      .input('valor', valor)                        // decimal
+      //.input('dataCriacao', dataCriacao)  // não é recebido, o próprio sistema coloca
+      .input('repeticao', repeticao)                // nenhuma, mensal, semanal, anual
+      .input('intervaloDias', intervaloDias)        // int -> null
+      .input('dataInicio', dataInicio)              // yyyy-mm-dd -> null
+      .input('dataFinal', dataFinal)                // yyyy-mm-dd -> null
+      .input('quantidadeDeParcelas', quantidadeDeParcelas) // int -> null
+      .input('juros', juros)                        // decimal -> null
+      .input('tipoJuros', tipoJuros)                // nenhum, simples, composto
       .query(`
-        INSERT INTO simpleCash.Gasto (idUsuario, tipo, descricao, valor, dataCriacao, repeticao, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros)
-        VALUES (@idUsuario, @tipo, @descricao, @valor, GETDATE(), @repeticao, @dataInicio, @dataFinal, @quantidadeDeParcelas, @juros, @tipoJuros)
+        INSERT INTO simpleCash.Gasto (idUsuario, tipo, descricao, valor, dataCriacao, repeticao, intervaloDias, dataInicio, dataFinal, quantidadeDeParcelas, juros, tipoJuros)
+        VALUES (@idUsuario, @tipo, @descricao, @valor, GETDATE(), @repeticao, @intervaloDias, @dataInicio, @dataFinal, @quantidadeDeParcelas, @juros, @tipoJuros)
       `);
 
     // 2. Atualizar saldo do usuário
@@ -63,7 +64,7 @@ async function listarTodos(req, res) {
     const pool = await conectaBD();
     const result = await pool.request()
       .input('idUsuario', idUsuario)
-      .query('SELECT * FROM simpleCash.Gasto WHERE idUsuario = @idUsuario');
+      .query('SELECT * FROM simpleCash.Gasto');
 
     res.json(result.recordset);
   } catch (err) {
