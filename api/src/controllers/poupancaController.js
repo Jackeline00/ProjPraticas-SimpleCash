@@ -2,7 +2,7 @@ const { conectaBD } = require('../db/db');
 
 // Criar poupanca
 async function criarPoupanca(req, res) {
-  const { idUsuario, tipo, descricao, valor, data, repeticao, origem } = req.body;
+  const { idUsuario, tipo, descricao, valor, repeticao, origem } = req.body;
 
   try {
     const pool = await conectaBD();
@@ -10,15 +10,14 @@ async function criarPoupanca(req, res) {
     // 1. Inserir poupanca
     await pool.request()
       .input('idUsuario', idUsuario)
-      .input('tipo', tipo)
+      .input('tipo', tipo)              // "nenhuma", "fixa" ou "variavel"
       .input('descricao', descricao)
       .input('valor', valor)
-      .input('data', data)
-      .input('repeticao', repeticao)
-      .input('origem', origem)
+      .input('repeticao', repeticao)    // "nenhuma", "semanal", "mensal", "anual", "diaria", "x dias"
+      .input('origem', origem)          // de onde veio o dinheiro que será poupado
       .query(`
-        INSERT INTO simpleCash.Poupanca (idUsuario, tipo, descricao, valor, data, repeticao, origem)
-        VALUES (@idUsuario, @tipo, @descricao, @valor, @data, @repeticao, @origem)
+        INSERT INTO simpleCash.Poupanca (idUsuario, tipo, descricao, valor, dataCriacao, repeticao, origem)
+        VALUES (@idUsuario, @tipo, @descricao, @valor, GETDATE(), @repeticao, @origem)
       `);
 
     // 2. Atualizar saldo do usuário
@@ -79,7 +78,7 @@ async function buscarPoupanca(req, res) {
 // Atualizar poupança
 async function atualizarPoupanca(req, res) {
   const { id } = req.params;
-  const { idUsuario, tipo, descricao, valor, data, repeticao, origem } = req.body;
+  const { idUsuario, tipo, descricao, valor, repeticao, origem } = req.body;
 
   try {
     const pool = await conectaBD();
@@ -98,11 +97,11 @@ async function atualizarPoupanca(req, res) {
 
     // Atualizar poupanca
     await pool.request()
+      .input('idPoupanca', id)
       .input('idUsuario', idUsuario)
       .input('tipo', tipo)
       .input('descricao', descricao)
       .input('valor', valor)
-      .input('data', data)
       .input('repeticao', repeticao)
       .input('origem', origem)
       .query(`
@@ -111,7 +110,6 @@ async function atualizarPoupanca(req, res) {
             tipo = @tipo, 
             descricao = @descricao, 
             valor = @valor, 
-            data = @data, 
             repeticao = @repeticao, 
             origem = @origem
         WHERE idPoupanca = @idPoupanca

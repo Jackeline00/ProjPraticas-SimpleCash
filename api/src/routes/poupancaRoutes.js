@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const poupancaController = require('../controllers/poupancaController');
+//  poupanca/  -> no singular
 
 // Criar poupança
 router.post('/', poupancaController.criarPoupanca);
