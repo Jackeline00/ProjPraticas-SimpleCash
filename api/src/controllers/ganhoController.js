@@ -2,7 +2,7 @@ const { conectaBD } = require('../db/db');
 
 // Criar ganho
 async function criarGanho(req, res) {
-  const { idUsuario, valor, descricao, dataCriacao, tipo, repeticao } = req.body;
+  const { idUsuario, valor, descricao, tipo, repeticao } = req.body;
 
   try {
     const pool = await conectaBD();
@@ -10,15 +10,14 @@ async function criarGanho(req, res) {
     // 1. Inserir ganho
     await pool.request()
       .input('idUsuario', idUsuario)
+      .input('tipo', tipo)                // "fixo" ou "variavel"
+      .input('descricao', descricao)    
       .input('valor', valor)
-      .input('descricao', descricao)
-      //.input('dataCriacao', dataCriacao)
-      .input('tipo', tipo)
-      .input('repeticao', repeticao)
+      .input('repeticao', repeticao)      // "nenhuma", "semanal", "mensal", "anual", "x dias"
 
       .query(`
-        INSERT INTO simpleCash.Ganho (idUsuario, valor, descricao, dataCriacao, tipo, repeticao)
-        VALUES (@idUsuario, @valor, @descricao, GETDATE(), @tipo, @repeticao)
+        INSERT INTO simpleCash.Ganho (idUsuario, tipo, descricao, valor, dataCriacao, repeticao)
+        VALUES (@idUsuario, @tipo, @descricao, @valor, GETDATE(), @repeticao)
       `);
 
     // 2. Atualizar saldo do usuário
@@ -79,7 +78,7 @@ async function buscarGanho(req, res) {
 // Atualizar ganho
 async function atualizarGanho(req, res) {
   const { id } = req.params;
-  const { valor, descricao, data } = req.body;
+  const { valor, descricao, tipo, repeticao } = req.body;
 
   try {
     const pool = await conectaBD();
@@ -101,12 +100,11 @@ async function atualizarGanho(req, res) {
       .input('idGanho', id)
       .input('valor', valor)
       .input('descricao', descricao)
-      .input('data', data)
       .input('tipo', tipo)
       .input('repeticao', repeticao)
       .query(`
         UPDATE simpleCash.Ganho
-        SET valor = @valor, descricao = @descricao, data = @data, tipo = @tipo, repeticao = @repeticao
+        SET valor = @valor, descricao = @descricao, tipo = @tipo, repeticao = @repeticao
         WHERE idGanho = @idGanho
       `);
 
