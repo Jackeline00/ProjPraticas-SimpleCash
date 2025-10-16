@@ -1,4 +1,5 @@
 const { conectaBD } = require('../db/db');
+const sql = require('mssql');
 
 // Criar gasto
 async function criarGasto(req, res) {
@@ -113,59 +114,111 @@ async function buscarGasto(req, res) {
 
 // Atualizar gasto
 async function atualizarGasto(req, res) {
-  const { id } = req.params;
-  const { valor, descricao, data } = req.body;
+  const idGasto = parseInt(req.params.id, 10);
+  const {
+    idUsuario, // opcional: se quiser permitir alterar dono, trate com cuidado
+    tipo,
+    descricao,
+    valor, // espere número (ou parseFloat)
+    repeticao,
+    intervaloDias,
+    dataInicio,
+    dataFinal,
+    quantidadeDeParcelas,
+    juros,
+    tipoJuros
+  } = req.body;
+
+  if (Number.isNaN(idGasto)) {
+    return res.status(400).json({ error: 'idGasto inválido.' });
+  }
 
   try {
     const pool = await conectaBD();
 
-    // Primeiro, buscar o valor antigo para ajustar saldo
-    const result = await pool.request()
-      .input('idGasto', id)
-      .query('SELECT * FROM simpleCash.Gasto WHERE idGasto = @idGasto');
+    // inicia transação para garantir atomicidade
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
 
-    if (result.recordset.length === 0) {
-      return res.status(404).json({ error: 'Gasto não encontrado.' });
-    }
+    try {
+      const request = new sql.Request(transaction);
 
-    const gastoAntigo = result.recordset[0];
-    const diferenca = valor - gastoAntigo.valor;
+      // Buscar gasto antigo
+      const selectRes = await request
+        .input('idGasto', sql.Int, idGasto)
+        .query('SELECT * FROM simpleCash.Gasto WHERE idGasto = @idGasto');
 
-    // Atualizar gasto
-    await pool.request()
-      .input('idUsuario', idUsuario)
-      .input('tipo', tipo)
-      .input('descricao', descricao)
-      .input('valor', valor)
-      .input('data', data)
-      .input('repeticao', repeticao)
-      .input('dataInicio', dataInicio)
-      .input('dataFinal', dataFinal)
-      .input('quantidadeDeParcelas', quantidadeDeParcelas)
-      .input('juros', juros)
-      .input('tipoJuros', tipoJuros)
-      .query(`
+      if (!selectRes.recordset || selectRes.recordset.length === 0) {
+        await transaction.rollback();
+        return res.status(404).json({ error: 'Gasto não encontrado.' });
+      }
+
+      const gastoAntigo = selectRes.recordset[0];
+
+      // converte valores numéricos se vierem como string
+      const novoValor = typeof valor === 'string' ? parseFloat(valor) : valor;
+      if (novoValor == null || Number.isNaN(novoValor)) {
+        await transaction.rollback();
+        return res.status(400).json({ error: 'Valor inválido.' });
+      }
+
+      const diferenca = novoValor - (gastoAntigo.valor ?? 0);
+
+      // Atualizar gasto (usa parâmetros corretos; passa também idGasto)
+      const updateReq = new sql.Request(transaction);
+      updateReq
+        .input('idGasto', sql.Int, idGasto)
+        .input('idUsuario', sql.Int, idUsuario ?? gastoAntigo.idUsuario) // se não veio, mantém antigo
+        .input('tipo', sql.VarChar(100), tipo ?? gastoAntigo.tipo)
+        .input('descricao', sql.VarChar(500), descricao ?? gastoAntigo.descricao)
+        .input('valor', sql.Decimal(18,2), novoValor)
+        .input('dataInicio', sql.Date, dataInicio ?? gastoAntigo.dataInicio)
+        .input('dataFinal', sql.Date, dataFinal ?? gastoAntigo.dataFinal)
+        .input('repeticao', sql.VarChar(50), repeticao ?? gastoAntigo.repeticao)
+        .input('intervaloDias', sql.Int, intervaloDias ?? gastoAntigo.intervaloDias)
+        .input('quantidadeDeParcelas', sql.Int, quantidadeDeParcelas ?? gastoAntigo.quantidadeDeParcelas)
+        .input('juros', sql.Decimal(18,2), juros ?? gastoAntigo.juros)
+        .input('tipoJuros', sql.VarChar(50), tipoJuros ?? gastoAntigo.tipoJuros);
+
+      await updateReq.query(`
         UPDATE simpleCash.Gasto
-        SET tipo = @tipo, descricao = @descricao, valor = @valor, data = @data, 
-        repeticao = @repeticao, dataInicio = @dataIncio, dataFinal = @dataFinal, 
-        quantidadeDeParcelas = @quantidadeDeParcelas, juros = @juros, tipoJuros = @tipoJuros
+        SET idUsuario = @idUsuario,
+            tipo = @tipo,
+            descricao = @descricao,
+            valor = @valor,
+            dataInicio = @dataInicio,
+            dataFinal = @dataFinal,
+            repeticao = @repeticao,
+            intervaloDias = @intervaloDias,
+            quantidadeDeParcelas = @quantidadeDeParcelas,
+            juros = @juros,
+            tipoJuros = @tipoJuros
         WHERE idGasto = @idGasto
       `);
 
-    // Ajustar saldo do usuário
-    await pool.request()
-      .input('idUsuario', ganhoAntigo.idUsuario)
-      .input('diferenca', diferenca)
-      .query(`
+      // Ajustar saldo do usuário (usamos o idUsuario final do gasto)
+      const idUsuarioParaAjuste = idUsuario ?? gastoAntigo.idUsuario;
+      const adjustReq = new sql.Request(transaction);
+      adjustReq
+        .input('idUsuario', sql.Int, idUsuarioParaAjuste)
+        .input('diferenca', sql.Decimal(18,2), diferenca);
+
+      await adjustReq.query(`
         UPDATE simpleCash.Usuario
         SET saldoTotal = saldoTotal + @diferenca
         WHERE idUsuario = @idUsuario
       `);
 
-    res.json({ message: 'Gasto atualizado com sucesso!' });
+      await transaction.commit();
+      return res.json({ message: 'Gasto atualizado com sucesso!' });
+    } catch (innerErr) {
+      await transaction.rollback();
+      console.error('Erro na transação atualizarGasto:', innerErr);
+      return res.status(500).json({ error: 'Erro ao atualizar gasto.' });
+    }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro ao atualizar gasto.' });
+    console.error('Erro conectar/atualizar gasto:', err);
+    return res.status(500).json({ error: 'Erro ao atualizar gasto.' });
   }
 }
 
@@ -189,7 +242,7 @@ async function deletarGasto(req, res) {
 
     // Deletar gasto
     await pool.request()
-      .input('idGanho', id)
+      .input('idGasto', id)
       .query('DELETE FROM simpleCash.Gasto WHERE idGasto = @idGasto');
 
     // Atualizar saldo do usuário
