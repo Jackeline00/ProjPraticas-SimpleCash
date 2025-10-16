@@ -5,17 +5,16 @@ async function criarDado(req, res) {
   const { idUsuario, tipoAtividade, idReferencia, descricao, valor } = req.body; 
 
   try {
-    const pool = await connectDB(); // abre uma conexão com o banco
+    const pool = await conectaBD(); // abre uma conexão com o banco
 
     await pool.request() // prepara uma consulta sql
       .input("idUsuario", idUsuario) 
-      .input("tipoAtividade", tipoAtividade)
-      .input("idReferencia", idReferencia)
-      .input("descricao", descricao)
+      .input("tipoAtividade", tipoAtividade)  // "gasto", "ganho" ou "poupanca"
+      .input("idReferencia", idReferencia)    // o mesmo da atividade a qual se refere
+      .input("descricao", descricao)          // com o que foi gasto, de onde veio ou para que está sendo guardado
       .input("valor", valor)
-      //.input("data", data)
       .query(`
-        INSERT INTO simpleCash.Historico (idUsuario, tipoAtividade, idReferencia, descricao, valor, data)
+        INSERT INTO simpleCash.Historico (idUsuario, tipoAtividade, idReferencia, descricao, valor, dataCriacao)
         VALUES (@idUsuario, @tipoAtividade, @idReferencia, @descricao, @valor, GETDATE())
       `);
 
@@ -63,25 +62,24 @@ async function buscarDado(req, res) {
 // Atualizar dado
 async function atualizarDado(req, res) {
   const { id } = req.params;
-  const { idUsuario, tipoAtividade, idReferencia, descricao, valor, data } = req.body;
+  const { idUsuario, tipoAtividade, idReferencia, descricao, valor } = req.body;
 
   try {
     const pool = await conectaBD();
     await pool.request()
+      .input('idHistorico', id)
       .input("idUsuario", idUsuario) 
       .input("tipoAtividade", tipoAtividade)
       .input("idReferencia", idReferencia)
       .input("descricao", descricao)
       .input("valor", valor)
-      .input("data", data)
       .query(`
         UPDATE simpleCash.Historico
         SET idUsuario = @idUsuario, 
             tipoAtividade = @tipoAtividade, 
-            referencia = @idReferencia, 
+            idReferencia = @idReferencia, 
             descricao = @descricao, 
-            valor = @valor, 
-            data = @data
+            valor = @valor
         WHERE idHistorico = @idHistorico
       `);
 
