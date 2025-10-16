@@ -8,6 +8,7 @@ class Login extends StatefulWidget { /// tela que pode mudar seu estado interno
   State<Login> createState() => _LoginScreen();
 }
 
+
 class _LoginScreen extends State<Login> {
   final _formKey = GlobalKey<FormState>();          /// chave global que vai validar os campos
   final _emailController = TextEditingController(); // controladores de texto para capturar os 
@@ -51,8 +52,9 @@ class _LoginScreen extends State<Login> {
           style: TextStyle( /// estilo do título Login
             color: Color.fromARGB(255, 13, 69, 144),
             fontSize: 30
-        ),
-      )), /// título principal
+          ),
+        )
+      ), /// título principal
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -93,6 +95,22 @@ class _LoginScreen extends State<Login> {
                 onPressed: _login, /// botão chama a função _login ao ser precionado
                 child: const Text("Entrar"),
               ),
+
+              /// ----------- Link para a tela de cadastro ------------
+              TextButton(
+                onPressed: () {
+                  print("indo para a tela de cadastro...");
+                  Navigator.pushNamed(context, '/cadastro'); /// rota da tela de cadastro
+                },
+                child: const Text(
+                  "Ainda não tem uma conta? Fazer cadastro",
+                  style: TextStyle(
+                    color: Colors.blue,
+                    //decoration: TextDecoration.underline, // opcional
+                  ),
+                ),
+              ),
+
             ],
           ),
         ),

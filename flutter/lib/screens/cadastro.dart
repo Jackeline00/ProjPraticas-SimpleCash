@@ -186,6 +186,22 @@ class _CadastroScreen extends State<Cadastro>{
                 ),
                   
               ),
+
+
+               /// ----------- Link para a tela de login ------------
+              TextButton(
+                onPressed: () {
+                  print("indo para a tela de login...");
+                  Navigator.pushNamed(context, '/login'); /// rota da tela de cadastro
+                },
+                child: const Text(
+                  "Já tem uma conta? Fazer login",
+                  style: TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline, // opcional
+                  ),
+                ),
+              ),
             ],
           ),
           )
