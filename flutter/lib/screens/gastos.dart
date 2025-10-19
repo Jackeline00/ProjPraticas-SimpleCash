@@ -20,12 +20,12 @@ class _GastosScreen extends State<Gastos> {
 
   @override
   void didChangeDependencies() {
-    print("E-mail recebido: $email");
-
     super.didChangeDependencies();
 
     final args = ModalRoute.of(context)?.settings.arguments;
     email = args is String ? args : '';
+
+    print("E-mail recebido: $email");
 
     _carregarGastos(); 
   }

@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  intl: ^0.18.0
   http: ^1.2.2 # para a conexão com a api
   google_fonts: ^6.1.0
   shared_preferences: ^2.3.2

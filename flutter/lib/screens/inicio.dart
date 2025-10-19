@@ -1,33 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'login.dart'; // substitua pelo nome correto da sua tela de login/cadastro
-import 'home.dart'; // substitua pelo nome correto da sua tela principal
 
-void main() {
-  runApp(const Inicio());
-}
-
-class Inicio extends StatelessWidget {
+class Inicio extends StatefulWidget {
   const Inicio({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const CentralizedScreen(),
-    );
-  }
+  State<Inicio> createState() => _InicioState();
 }
 
-class CentralizedScreen extends StatefulWidget {
-  const CentralizedScreen({super.key});
-
-  @override
-  State<CentralizedScreen> createState() => _CentralizedScreenState();
-}
-
-class _CentralizedScreenState extends State<CentralizedScreen> {
+class _InicioState extends State<Inicio> {
   final AuthService _authService = AuthService();
 
   @override
@@ -42,16 +24,10 @@ class _CentralizedScreenState extends State<CentralizedScreen> {
 
       if (logado) {
         // Usuário já está logado → vai pra home
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Home()),
-        );
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
-        // Usuário ainda não logado → vai pra tela de login/cadastro
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Login()),
-        );
+        // Usuário ainda não logado → vai pra tela de login
+        Navigator.pushReplacementNamed(context, '/login');
       }
     });
   }

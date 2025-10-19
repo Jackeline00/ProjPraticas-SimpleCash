@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/addGastos.dart';
 import 'package:frontend/screens/poupanca.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/login.dart';
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
           Theme.of(context).textTheme,
         ),
       ),
-      home: Inicio(), 
+      home: AdicionarGasto(), 
       //initialRoute: '/login', /// tela para testes
 
       routes: {
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         "/home": (context) => const Home(),
         "/configuracao": (context) => const Configuracao(),
         "/gastos": (context) => const Gastos(),
+        "/adicionarGasto":(context) => const AdicionarGasto(),
         "/ganhos": (context) => const Ganhos(),
         //"/poupanca": (context) => const Poupanca(),
       },
