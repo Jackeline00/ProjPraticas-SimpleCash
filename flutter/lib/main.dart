@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
           Theme.of(context).textTheme,
         ),
       ),
-      home: AdicionarGasto(), 
+      home: Inicio(), 
       //initialRoute: '/login', /// tela para testes
 
       routes: {

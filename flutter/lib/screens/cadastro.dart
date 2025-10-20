@@ -188,7 +188,7 @@ class _CadastroScreen extends State<Cadastro>{
               ),
 
 
-               /// ----------- Link para a tela de login ------------
+              /// ----------- Link para a tela de login ------------
               TextButton(
                 onPressed: () {
                   print("indo para a tela de login...");

@@ -64,25 +64,30 @@ async function buscarUsuario(req, res) {
 }
 
 // Buscar usuário por email
-async function buscarPorEmail(req, res) {
-  const { email } = req.params;
+async function buscarUsuarioPorEmail(req, res) {
+  const { emailPk } = req.params;
 
   try {
     const pool = await conectaBD();
     const result = await pool.request()
-      .input("email", email)
-      .query("SELECT * FROM simpleCash.Usuario WHERE email = @email");
+      .input("emailPk", emailPk)
+      .query(`
+        SELECT nome, email, senha
+        FROM simpleCash.Usuario
+        WHERE email = @emailPk
+      `);
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    res.json(result.recordset[0]);
+    res.json(result.recordset[0]); // retorna { nome, email, senha }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao buscar usuário." });
   }
 }
+
 
 // Buscar id por email
 async function buscarId(req, res) {
@@ -127,7 +132,7 @@ async function buscarNome(req, res) {
     res.status(500).json({error: "Erro ao buscar o nome do usuário."});
   }
 }
-
+ 
 // Buscar senha por email
 async function buscarSenha(req, res) {
   const { email } = req.params;
@@ -279,7 +284,7 @@ module.exports = {
   criarUsuario,
   listarUsuarios,
   buscarUsuario,
-  buscarPorEmail,
+  buscarUsuarioPorEmail,
   buscarId,
   buscarNome,
   buscarSenha,

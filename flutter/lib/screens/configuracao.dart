@@ -47,15 +47,15 @@ class _ConfiguracaoScreen extends State<Configuracao> {
   Future<void> carregarDadosUsuario(String email) async {
     final authService = AuthService();
 
-    final nome = await authService.buscarNomeUsuario(email);
-    final senha = await authService.buscarSaldo(email);
+    final dados = await authService.buscarDadosUsuario(email);
 
     setState(() {
-      _emailController.text = email;
-      _nomeController.text = nome ?? '';
-      _senhaController.text = senha ?? '';
+      _emailController.text = dados?['email'] ?? '';
+      _nomeController.text = dados?['nome'] ?? '';
+      _senhaController.text = dados?['senha'] ?? '';
       _carregando = false;
     });
+
   }
 
   @override
@@ -156,13 +156,22 @@ class _ConfiguracaoScreen extends State<Configuracao> {
                                 width: 400,
                                 child: TextFormField(
                                   controller: _emailController,
-                                  readOnly: true,
                                   decoration: const InputDecoration(
                                     labelText: "E-mail",
                                     border: OutlineInputBorder(),
                                   ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Este campo não pode ficar vazio.";
+                                    }
+                                    if (!value.contains("@") || !value.contains(".")) {
+                                      return "Digite um e-mail válido.";
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
+
                               const SizedBox(height: 16),
                               SizedBox(
                                 width: 400,

@@ -128,6 +128,20 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>?> buscarDadosUsuario(String email) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/usuarios/$email'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return null;
+    }
+  }
+
+
   Future<String?> buscarNomeUsuario(String email) async {
     final response = await http.get(
       Uri.parse('$baseUrl/usuarios/nome/$email'),
