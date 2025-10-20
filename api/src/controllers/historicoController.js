@@ -38,6 +38,77 @@ async function listarDados(req, res) {
   }
 }
 
+// Buscar gastos de um usuário
+async function buscarGastos(req, res) {
+  const { id } = req.params;
+
+  try {
+    const pool = await conectaBD();
+
+    const result = await pool.request()
+      .input("idUsuario", id)
+      .query("SELECT * FROM simpleCash.Historico WHERE idUsuario = @idUsuario AND tipoAtividade = 'gasto'");
+
+    if (!result.recordset || result.recordset.length === 0) {
+      return res.status(404).json({ error: "Dado do histórico não encontrado." });
+    }
+
+    // Retorna todos os registros encontrados
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("Erro ao buscar gastos:", err); 
+    res.status(500).json({ error: "Erro ao buscar dado do histórico." });
+  }
+}
+
+
+// Buscar ganhos de um usuário
+async function buscarGanhos(req, res) {
+  const { id } = req.params;
+
+  try {
+    const pool = await conectaBD();
+
+    const result = await pool.request()
+      .input("idUsuario", id)
+      .query("SELECT * FROM simpleCash.Historico WHERE idUsuario = @idUsuario AND tipoAtividade = 'ganho'");
+
+    if (!result.recordset || result.recordset.length === 0) {
+      return res.status(404).json({ error: "Dado do histórico não encontrado." });
+    }
+
+    // Retorna todos os registros encontrados
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("Erro ao buscar gastos:", err); 
+    res.status(500).json({ error: "Erro ao buscar dado do histórico." });
+  }
+}
+
+
+// Buscar poupanças de um usuário
+async function buscarPoupanca(){
+  const { id } = req.params;
+
+  try {
+    const pool = await conectaBD();
+
+    const result = await pool.request()
+      .input("idUsuario", id)
+      .query("SELECT * FROM simpleCash.Historico WHERE idUsuario = @idUsuario AND tipoAtividade = 'poupanca'");
+
+    if (!result.recordset || result.recordset.length === 0) {
+      return res.status(404).json({ error: "Dado do histórico não encontrado." });
+    }
+
+    // Retorna todos os registros encontrados
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("Erro ao buscar gastos:", err); 
+    res.status(500).json({ error: "Erro ao buscar dado do histórico." });
+  }
+}
+
 // Buscar dado do histórico por ID
 async function buscarDado(req, res) {
   const { id } = req.params;
@@ -110,6 +181,9 @@ async function deletarDado(req, res) {
 module.exports = {
   criarDado,
   listarDados,
+  buscarGastos,
+  buscarGanhos,
+  buscarPoupanca,
   buscarDado,
   atualizarDado,
   deletarDado

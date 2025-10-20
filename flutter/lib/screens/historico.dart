@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/services/auth_service.dart';
 import '../services/historico_service.dart';
 
 class Historico extends StatefulWidget {
@@ -11,6 +12,7 @@ class Historico extends StatefulWidget {
 class _HistoricoScreen extends State<Historico> {
   String filtroSelecionado = "todos";
   late Future<List<Map<String, dynamic>>> _historicoFuture;
+  late int idUsuario;
 
   final service = HistoricoService();
 
@@ -20,22 +22,30 @@ class _HistoricoScreen extends State<Historico> {
     _carregarHistorico();
   }
 
+  void carregarIdUsuario(String email) async {
+    final authService = AuthService();
+    final id = await authService.buscarIdUsuario(email);
+    setState(() {
+      idUsuario = id as int; /// tenta converter para double 
+    });
+  }
+
   void _carregarHistorico() {
     switch (filtroSelecionado) {
       case "gastos":
-        _historicoFuture = service.mostrarGastos();
+        _historicoFuture = service.mostrarGastos(idUsuario);
         break;
       case "ganhos":
-        _historicoFuture = service.mostrarGanhos();
+        _historicoFuture = service.mostrarGanhos(idUsuario);
         break;
       case "poupanca":
-        _historicoFuture = service.mostrarPoupanca();
+        _historicoFuture = service.mostrarPoupancas(idUsuario);
         break;
       default:
         _historicoFuture = Future.wait([
-          service.mostrarGastos(),
-          service.mostrarGanhos(),
-          service.mostrarPoupanca(),
+          service.mostrarGastos(idUsuario),
+          service.mostrarGanhos(idUsuario),
+          service.mostrarPoupancas(idUsuario),
         ]).then((listas) => listas.expand((e) => e).toList());
     }
     setState(() {});
@@ -121,6 +131,14 @@ class _HistoricoScreen extends State<Historico> {
 
   @override
   Widget build(BuildContext context) {
+    /// recupera o email passado via Navigator
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final email = args is String ? args : '';
+
+    /// Pega o usuário 
+    carregarIdUsuario(email);
+    
+
     return Scaffold(
       body: Container(
         width: double.infinity,

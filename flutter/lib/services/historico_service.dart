@@ -24,20 +24,104 @@ class HistoricoService {
     }
   }
 
-  Future<bool> mostrarHistorico(int idUsuario) async{ // de um determinado usuário
+  Future<List<dynamic>> mostrarHistorico(int idUsuario) async {
     final response = await http.get(
       Uri.parse('$baseUrl/historico/$idUsuario'),
       headers: {"Content-Type": "application/json"},
     );
 
-     if(response.statusCode == 201){
-      return true;
-    }else{
-      return false;
+    if (response.statusCode == 200) { 
+      final data = jsonDecode(response.body);
+
+      // Se a API retorna um array de registros, o decode já será uma lista
+      if (data is List) {
+        return data;
+      } else if (data is Map && data.containsKey('historico')) {
+        // caso sua API devolva um objeto com uma chave "historico"
+        return data['historico'];
+      } else {
+        return [];
+      }
+    } else {
+      throw Exception(
+        'Erro ao carregar histórico: código ${response.statusCode}',
+      );
     }
   }
 
-   Future<bool> editar(int id, int idUsuario, String tipoAtividade, int idReferencia, String descricao, double valor) async{
+  Future<List<Map<String, dynamic>>> mostrarGastos(int idUsuario) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/historico/gastos/$idUsuario'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      } else if (data is Map && data.containsKey('historico')) {
+        return List<Map<String, dynamic>>.from(data['historico']);
+      } else {
+        return [];
+      }
+    } else {
+      throw Exception(
+        'Erro ao carregar histórico: código ${response.statusCode}',
+      );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> mostrarGanhos(int idUsuario) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/historico/ganhos/$idUsuario'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      } else if (data is Map && data.containsKey('historico')) {
+        return List<Map<String, dynamic>>.from(data['historico']);
+      } else {
+        return [];
+      }
+    } else {
+      throw Exception(
+        'Erro ao carregar histórico: código ${response.statusCode}',
+      );
+    }
+  }
+
+
+  Future<List<Map<String, dynamic>>> mostrarPoupancas(int idUsuario) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/historico/poupancas/$idUsuario'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      } else if (data is Map && data.containsKey('historico')) {
+        return List<Map<String, dynamic>>.from(data['historico']);
+      } else {
+        return [];
+      }
+    } else {
+      throw Exception(
+        'Erro ao carregar histórico: código ${response.statusCode}',
+      );
+    }
+  }
+
+  
+
+  Future<bool> editar(int id, int idUsuario, String tipoAtividade, int idReferencia, String descricao, double valor) async{
     final response = await http.put(
       Uri.parse('$baseUrl/historico/$id'),
       headers: {"Content-Type": "application/json"},
