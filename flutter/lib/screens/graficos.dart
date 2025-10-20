@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/services/auth_service.dart';
 import '../services/gasto_service.dart';
 import '../services/poupanca_service.dart';
 import '../services/ganho_service.dart';
@@ -12,7 +13,7 @@ class Graficos extends StatefulWidget {
 }
 
 class _GraficosState extends State<Graficos> {
-  final gastoService = GastoService();
+  late final gastoService = GastoService();
   final ganhoService = GanhoService();
   final poupancaService = PoupancaService();
 
@@ -21,23 +22,52 @@ class _GraficosState extends State<Graficos> {
   List<Map<String, dynamic>> poupancas = [];
 
   bool carregando = true;
+  int? idUsuario;
 
   @override
-  void initState() {
-    super.initState();
-    _carregarDados();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Recupera email via argumentos da rota
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final email = args is String ? args : '';
+
+    if (carregando) {
+      _carregarDados(email);
+    }
   }
 
-  Future<void> _carregarDados() async {
+  Future<void> _carregarDados(String email) async {
+    setState(() => carregando = true);
+
     try {
-      gastos = await gastoService.mostrarGastos(widget.email);
-      ganhos = await ganhoService.mostrarGanhos(widget.email);
-      poupancas = await poupancaService.mostrarPoupancas(widget.email);
+      final authService = AuthService();
+
+      // 1. Busca o ID do usuário
+      final id = await authService.buscarIdUsuario(email);
+      if (id == null) throw Exception("Usuário não encontrado");
+      idUsuario = id;
+
+      // 2. Busca os dados agora que idUsuario existe
+      gastos = List<Map<String, dynamic>>.from(await gastoService.mostrarGastos(idUsuario!));
+      ganhos = List<Map<String, dynamic>>.from(await ganhoService.mostrarGanhos(idUsuario!));
+      poupancas = await poupancaService.mostrarPoupancas(idUsuario!);
     } catch (e) {
       debugPrint('Erro ao carregar dados: $e');
     }
+
     setState(() => carregando = false);
   }
+
+
+  void carregarIdUsuario(String email) async {
+    final authService = AuthService();
+    final id = await authService.buscarIdUsuario(email);
+    setState(() {
+      idUsuario = id as int; 
+    });
+  }
+
 
   Widget _buildGrafico(List<Map<String, dynamic>> dados) {
     if (dados.isEmpty) {
@@ -103,6 +133,10 @@ class _GraficosState extends State<Graficos> {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final email = args is String ? args : '';
+
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: carregando

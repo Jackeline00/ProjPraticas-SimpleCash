@@ -114,7 +114,7 @@ class AuthService {
     }
   }
 
-  Future<String?> buscarIdUsuario(String email) async {
+  Future<int?> buscarIdUsuario(String email) async {
     final response = await http.get(
       Uri.parse('$baseUrl/usuarios/id/$email'),
       headers: {"Content-Type": "application/json"},
@@ -122,11 +122,20 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['idUsuario'];
+
+      final id = data['idUsuario'];
+      if (id == null) return null;
+
+      // Se o JSON já retorna número, converte para int
+      if (id is int) return id;
+
+      // Se veio como string, tenta converter
+      return int.tryParse(id.toString());
     } else {
       return null;
     }
   }
+
 
   Future<Map<String, dynamic>?> buscarDadosUsuario(String email) async {
     final response = await http.get(
