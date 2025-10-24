@@ -1,5 +1,6 @@
 const { conectaBD } = require("../db/db"); // cria a conexão com o banco
 const bcrypt = require("bcrypt");
+const sql = require("mssql"); 
 
 // Criar usuário
 async function criarUsuario(req, res) {
@@ -183,23 +184,27 @@ async function atualizarUsuario(req, res) {
   const { nome, email, senha } = req.body;
 
   try {
+    const saltRounds = 10;
+    const senhaCriptografada = await bcrypt.hash(senha, saltRounds);
+
     const pool = await conectaBD();
+
     await pool.request()
-      .input("emailPk", emailPk)
-      .input("nome", nome)
-      .input("email", email)
-      .input("senha", senha)
+      .input("emailPk", sql.VarChar, emailPk)
+      .input("nome", sql.VarChar, nome)
+      .input("email", sql.VarChar, email)
+      .input("senhaCripto", sql.VarChar, senhaCriptografada)
       .query(`
         UPDATE simpleCash.Usuario
         SET nome = @nome,
             email = @email,
-            senha = @senha
+            senha = @senhaCripto
         WHERE email = @emailPk
       `);
 
     res.json({ message: "Dados do usuário atualizados com sucesso!" });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao atualizar usuário:", err);
     res.status(500).json({ error: "Erro ao atualizar dados do usuário." });
   }
 }
@@ -211,15 +216,16 @@ async function deletarUsuario(req, res) {
   try {
     const pool = await conectaBD();
     await pool.request()
-      .input("idUsuario", email)
+      .input("email", sql.VarChar, email)
       .query("DELETE FROM simpleCash.Usuario WHERE email = @email");
 
     res.json({ message: "Usuário deletado com sucesso!" });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao deletar usuário:", err);
     res.status(500).json({ error: "Erro ao deletar usuário." });
   }
 }
+
 
 // Login usuário - validar senha e email
 async function loginUsuario(req, res) {

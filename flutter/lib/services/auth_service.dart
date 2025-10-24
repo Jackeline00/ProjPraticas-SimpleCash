@@ -139,7 +139,7 @@ class AuthService {
 
   Future<Map<String, dynamic>?> buscarDadosUsuario(String email) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/usuarios/$email'),
+      Uri.parse('$baseUrl/usuarios/dados/$email'),
       headers: {"Content-Type": "application/json"},
     );
 

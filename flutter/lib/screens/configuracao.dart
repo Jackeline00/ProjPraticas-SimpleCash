@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
-/// Tela quase pronta
-/// Ainda não funciona corretamente
+/// Tela funcionando corretamente
+/// Falta:
+/// 1 - Design visual igual ao figma e/ou com as cores do app
+/// 2 - Revisar o código
 //
 
 class Configuracao extends StatefulWidget {
@@ -20,6 +22,9 @@ class _ConfiguracaoScreen extends State<Configuracao> {
   late TextEditingController _senhaController;
 
   bool _carregando = true;
+  late String emailPk; // email original (chave primária)
+
+  bool _senhaVisivel = false;
 
   @override
   void initState() {
@@ -32,30 +37,44 @@ class _ConfiguracaoScreen extends State<Configuracao> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     // recupera o email enviado via Navigator
     final args = ModalRoute.of(context)?.settings.arguments;
     final emailRecuperado = args is String ? args : '';
 
-    // carrega os dados do usuário
     if (emailRecuperado.isNotEmpty) {
+      emailPk = emailRecuperado; // guarda o email original
       carregarDadosUsuario(emailRecuperado);
     } else {
       setState(() => _carregando = false);
     }
   }
 
+  /// Busca os dados atuais do usuário e preenche nome e e-mail
   Future<void> carregarDadosUsuario(String email) async {
-    final authService = AuthService();
+    try {
+      final authService = AuthService();
+      final dados = await authService.buscarDadosUsuario(email);
 
-    final dados = await authService.buscarDadosUsuario(email);
-
-    setState(() {
-      _emailController.text = dados?['email'] ?? '';
-      _nomeController.text = dados?['nome'] ?? '';
-      _senhaController.text = dados?['senha'] ?? '';
-      _carregando = false;
-    });
-
+      if (dados != null) {
+        setState(() {
+          _emailController.text = dados['email'] ?? '';
+          _nomeController.text = dados['nome'] ?? '';
+          _senhaController.text = ''; // deixa em branco
+          _carregando = false;
+        });
+      } else {
+        setState(() => _carregando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Não foi possível carregar os dados.")),
+        );
+      }
+    } catch (e) {
+      setState(() => _carregando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erro ao carregar dados: $e")),
+      );
+    }
   }
 
   @override
@@ -66,10 +85,13 @@ class _ConfiguracaoScreen extends State<Configuracao> {
     super.dispose();
   }
 
-  void _salvarAlteracoes(String emailPk) async {
+  /// Atualiza os dados no backend
+  void _salvarAlteracoes() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final nome = _nomeController.text;
     final email = _emailController.text;
-    final senha = _senhaController.text;
+    final senha = _senhaController.text; // se vazio, backend não altera
 
     final authService = AuthService();
     bool atualizou = await authService.editar(emailPk, nome, email, senha);
@@ -88,9 +110,6 @@ class _ConfiguracaoScreen extends State<Configuracao> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final emailRecuperado = args is String ? args : '';
-
     return Scaffold(
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
@@ -171,22 +190,28 @@ class _ConfiguracaoScreen extends State<Configuracao> {
                                   },
                                 ),
                               ),
-
                               const SizedBox(height: 16),
                               SizedBox(
                                 width: 400,
                                 child: TextFormField(
                                   controller: _senhaController,
-                                  obscureText: true,
-                                  decoration: const InputDecoration(
+                                  obscureText: !_senhaVisivel,
+                                  decoration: InputDecoration(
                                     labelText: "Senha",
-                                    border: OutlineInputBorder(),
+                                    border: const OutlineInputBorder(),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _senhaVisivel = !_senhaVisivel;
+                                        });
+                                      },
+                                    ),
                                   ),
                                   validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Este campo não pode ficar vazio.";
-                                    }
-                                    if (value.length < 6) {
+                                    if (value != null && value.isNotEmpty && value.length < 6) {
                                       return "A senha precisa ter no mínimo 6 caracteres.";
                                     }
                                     return null;
@@ -195,11 +220,7 @@ class _ConfiguracaoScreen extends State<Configuracao> {
                               ),
                               const SizedBox(height: 80),
                               ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    _salvarAlteracoes(emailRecuperado);
-                                  }
-                                },
+                                onPressed: _salvarAlteracoes,
                                 child: const Text(
                                   "Salvar",
                                   style: TextStyle(
