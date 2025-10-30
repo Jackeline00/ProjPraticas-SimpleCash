@@ -179,7 +179,7 @@ class AuthService {
     }
   }
 
-  Future<String?> buscarSaldo(String email) async {
+  Future<double?> buscarSaldo(String email) async {
     final response = await http.get(
       Uri.parse('$baseUrl/usuarios/saldo/$email'),
       headers: {"Content-Type": "application/json"},
@@ -187,11 +187,12 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['saldoAtual'];
+      return (data['saldoTotal'] as num).toDouble(); /// converte pra double
     } else {
       return null;
     }
   }
+
 
   Future<bool> apagarConta(String email) async {
     final response = await http.delete(

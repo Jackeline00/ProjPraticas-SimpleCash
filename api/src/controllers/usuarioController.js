@@ -160,10 +160,10 @@ async function buscarSenha(req, res) {
 async function buscarSaldo(req, res) {
   const { email } = req.params;
 
-  try{
+  try {
     const pool = await conectaBD();
     const result = await pool.request()
-      .input("email", email)
+      .input("email", sql.NVarChar, email) // 👈 aqui define o tipo como texto
       .query("SELECT saldoTotal FROM simpleCash.Usuario WHERE email = @email");
 
     if (result.recordset.length === 0) {
@@ -171,10 +171,9 @@ async function buscarSaldo(req, res) {
     }
 
     res.json(result.recordset[0]);
-  }
-  catch (err){
-    console.error(err);
-    res.status(500).json({error: "Erro ao buscar o saldo total do usuário."});
+  } catch (err) {
+    console.error("Erro ao buscar saldo:", err);
+    res.status(500).json({ error: "Erro ao buscar o saldo total do usuário." });
   }
 }
 

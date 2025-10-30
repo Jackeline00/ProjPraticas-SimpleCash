@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart'; 
 import '../services/auth_service.dart'; 
 
-/// Tela funcionando 
-/// Design -> faltam imagens funcionarem e tirar aquela linha estranha da parte inferior
-//
+/// Tela funcionando corretamente
+/// Falta: Design, imagens, tirar a faixa amarela da parte de baixo
 
 class Home extends StatefulWidget{
   const Home({super.key});
@@ -34,6 +33,20 @@ class _HomeScreen extends State<Home>{
     });
   }
 
+  /// inicialização da tela (carrega dados uma única vez)
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final email = args is String ? args : '';
+      if (email.isNotEmpty) {
+        carregarNomeUsuario(email);
+        carregarSaldoUsuario(email);
+      }
+    });
+  }
+
   /// tela
   @override
   Widget build(BuildContext context) {
@@ -41,11 +54,6 @@ class _HomeScreen extends State<Home>{
     final args = ModalRoute.of(context)?.settings.arguments;
     final email = args is String ? args : '';
 
-
-    /// chama o método passando o email
-    if (nomeUsuario == null) {
-      carregarNomeUsuario(email);
-    }
     return Scaffold( 
       /// Cabeçalho da tela
       //
@@ -278,9 +286,6 @@ class _HomeScreen extends State<Home>{
                     )
                   ),
               )
-                  
-
-
             ],
           ),
         ),
