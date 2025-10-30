@@ -29,7 +29,7 @@ class _HomeScreen extends State<Home>{
     final authService = AuthService();
     final saldo = await authService.buscarSaldo(email);
     setState(() {
-      saldoAtual = saldo as double?; /// tenta converter para double 
+      saldoAtual = saldo; /// tenta converter para double 
     });
   }
 
@@ -59,29 +59,13 @@ class _HomeScreen extends State<Home>{
       //
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0), // espaçamento geral
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: SingleChildScrollView(  /// permite rolagem se o conteúdo for maior que a tela
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               /// ícone de configurações no topo direito
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: Image.asset(
-                    'assets/images/engrenagem.png', /// caminho da futura imagem
-                    width: 28,
-                    height: 28,
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/configuracao', arguments: email); /// leva pra outra tela
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              /// Linha com nome do app e saudação
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -93,15 +77,33 @@ class _HomeScreen extends State<Home>{
                       color: Color(0xFF0D4590),
                     ),
                   ),
-                  Text(
-                    nomeUsuario != null ? "Olá, $nomeUsuario" : "Olá, usuário",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Color(0xFF8EC1F3),
+                  IconButton(
+                    icon: Image.asset(
+                      'assets/images/engrenagem.png', /// caminho da futura imagem
+                      width: 45,  /// tamanho ajustado
+                      height: 45,
                     ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/configuracao', arguments: email); /// leva pra outra tela
+                    },
                   ),
                 ],
               ),
+
+              const SizedBox(height: 10),
+
+              /// Linha com nome do app e saudação
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  nomeUsuario != null ? "Olá, $nomeUsuario" : "Olá, usuário",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF8EC1F3),
+                  ),
+                ),
+              ),
+
 
               const SizedBox(height: 20),
 
@@ -290,6 +292,7 @@ class _HomeScreen extends State<Home>{
           ),
         ),
       ),
+    ),
     );
   }
 }
