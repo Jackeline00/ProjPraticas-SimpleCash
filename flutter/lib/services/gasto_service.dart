@@ -53,20 +53,7 @@ class GastoService {
     }
   }
 
-  Future<List<dynamic>> mostrarDescricoes(int idUsuario) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/gastos/descricao/$idUsuario'),
-      headers: {"Content-Type": "application/json"},
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Erro ao buscar descrições dos gastos');
-    }
-  }
-
-   Future<bool> editar(int id, int idUsuario, String tipo, String descricao, double valor, String repeticao, String dataInicio, String dataFinal, int quantidadeDeParcelas, double juros, String tipoJuros) async{
+  Future<bool> editar(int id, int idUsuario, String tipo, String descricao, double valor, String repeticao, String dataInicio, String dataFinal, int quantidadeDeParcelas, double juros, String tipoJuros) async{
     final response = await http.put(
       Uri.parse('$baseUrl/gastos/$id'),
       headers: {"Content-Type": "application/json"},

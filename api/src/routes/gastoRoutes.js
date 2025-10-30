@@ -11,9 +11,6 @@ router.get('/todos', gastoController.listarTodos);
 // Listar todos os gastos de um usuário
 router.get('/:idUsuario', gastoController.listarGastos);
 
-// Listar as descrições dos gastos de um usuário
-router.get('/descricao/:idUsuario', gastoController.listarDescricoes);
-
 // Buscar gasto por ID
 router.get('/detalhe/:id', gastoController.buscarGasto);
 
