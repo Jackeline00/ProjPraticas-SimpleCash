@@ -42,7 +42,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     try {
       final id = await AuthService().buscarIdUsuario(email);
       setState(() {
-        idUsuario = id as int?;
+        idUsuario = id;
       });
     } catch (e) {
       print("Erro ao buscar ID do usuário: $e");
