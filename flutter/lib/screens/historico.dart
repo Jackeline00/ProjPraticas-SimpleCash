@@ -11,43 +11,48 @@ class Historico extends StatefulWidget {
 
 class _HistoricoScreen extends State<Historico> {
   String filtroSelecionado = "todos";
-  late Future<List<Map<String, dynamic>>> _historicoFuture;
-  late int idUsuario;
-
+  Future<List<Map<String, dynamic>>>? _historicoFuture;
+  int? idUsuario; // ← deixa como int? (pode ser nulo até carregar)
   final service = HistoricoService();
 
   @override
   void initState() {
     super.initState();
-    _carregarHistorico();
   }
 
   void carregarIdUsuario(String email) async {
     final authService = AuthService();
     final id = await authService.buscarIdUsuario(email);
+
     setState(() {
-      idUsuario = id as int; /// tenta converter para double 
+      idUsuario = id is int ? id : int.tryParse(id.toString());
     });
+
+    // Depois que o id for carregado, chama o histórico
+    _carregarHistorico();
   }
 
   void _carregarHistorico() {
+    if (idUsuario == null) return; // evita erro antes de carregar o id
+
     switch (filtroSelecionado) {
       case "gastos":
-        _historicoFuture = service.mostrarGastos(idUsuario);
+        _historicoFuture = service.mostrarGastos(idUsuario!);
         break;
       case "ganhos":
-        _historicoFuture = service.mostrarGanhos(idUsuario);
+        _historicoFuture = service.mostrarGanhos(idUsuario!);
         break;
       case "poupanca":
-        _historicoFuture = service.mostrarPoupancas(idUsuario);
+        _historicoFuture = service.mostrarPoupancas(idUsuario!);
         break;
       default:
         _historicoFuture = Future.wait([
-          service.mostrarGastos(idUsuario),
-          service.mostrarGanhos(idUsuario),
-          service.mostrarPoupancas(idUsuario),
+          service.mostrarGastos(idUsuario!),
+          service.mostrarGanhos(idUsuario!),
+          service.mostrarPoupancas(idUsuario!),
         ]).then((listas) => listas.expand((e) => e).toList());
     }
+
     setState(() {});
   }
 
@@ -135,9 +140,10 @@ class _HistoricoScreen extends State<Historico> {
     final args = ModalRoute.of(context)?.settings.arguments;
     final email = args is String ? args : '';
 
-    /// Pega o usuário 
-    carregarIdUsuario(email);
-    
+    /// Pega o usuário apenas uma vez, se ainda não tiver carregado
+    if (idUsuario == null && email.isNotEmpty) {
+      carregarIdUsuario(email);
+    }
 
     return Scaffold(
       body: Container(
@@ -214,65 +220,76 @@ class _HistoricoScreen extends State<Historico> {
 
             /// Lista de histórico
             Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _historicoFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return const Center(child: Text("Erro ao carregar histórico."));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text("Nenhum registro encontrado."));
-                  }
+              child: _historicoFuture == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _historicoFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return const Center(
+                              child: Text("Erro ao carregar histórico."));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Center(
+                              child: Text("Nenhum registro encontrado."));
+                        }
 
-                  final dados = snapshot.data!;
+                        final dados = snapshot.data!;
+                        final datas =
+                            dados.map((e) => e['data']).toSet().toList();
 
-                  // Agrupar por data
-                  final datas = dados.map((e) => e['data']).toSet().toList();
+                        return ListView.builder(
+                          itemCount: datas.length,
+                          itemBuilder: (context, i) {
+                            final data = datas[i];
+                            final registros = dados
+                                .where((e) => e['data'] == data)
+                                .toList();
 
-                  return ListView.builder(
-                    itemCount: datas.length,
-                    itemBuilder: (context, i) {
-                      final data = datas[i];
-                      final registros = dados.where((e) => e['data'] == data).toList();
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            data,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          const Divider(),
-                          ...registros.map((r) => Card(
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(
-                                      color: _corPorTipo(r["tipo"])
-                                          .withOpacity(0.5)),
-                                ),
-                                child: ListTile(
-                                  leading: Icon(_iconePorTipo(r["tipo"]),
-                                      color: _corPorTipo(r["tipo"])),
-                                  title: Text(r["descricao"]),
-                                  trailing: Text(
-                                    "R\$${r["valor"].toStringAsFixed(2)}",
-                                    style: TextStyle(
-                                      color: _corPorTipo(r["tipo"]),
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  data,
+                                  style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                      fontSize: 16),
                                 ),
-                              )),
-                          const SizedBox(height: 20),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
+                                const Divider(),
+                                ...registros.map((r) => Card(
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        side: BorderSide(
+                                          color: _corPorTipo(r["tipo"])
+                                              .withValues(alpha: 0.5),
+                                        ),
+                                      ),
+                                      child: ListTile(
+                                        leading: Icon(
+                                            _iconePorTipo(r["tipo"]),
+                                            color: _corPorTipo(r["tipo"])),
+                                        title: Text(r["descricao"]),
+                                        trailing: Text(
+                                          "R\$${r["valor"].toStringAsFixed(2)}",
+                                          style: TextStyle(
+                                            color: _corPorTipo(r["tipo"]),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    )),
+                                const SizedBox(height: 20),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         ),

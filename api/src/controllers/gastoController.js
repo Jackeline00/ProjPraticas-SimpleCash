@@ -65,7 +65,7 @@ async function listarTodos(req, res) {
     const pool = await conectaBD();
     const result = await pool.request()
       .input('idUsuario', idUsuario)
-      .query('SELECT * FROM simpleCash.Gasto');
+      .query('SELECT * FROM simpleCash.Gasto where idUsuario = @idUsuario');
 
     res.json(result.recordset);
   } catch (err) {

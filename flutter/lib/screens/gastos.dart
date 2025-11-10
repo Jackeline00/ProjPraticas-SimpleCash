@@ -3,7 +3,7 @@ import '../services/auth_service.dart';
 import '../services/gasto_service.dart'; /// serviço que faz a requisição GET
 
 /// Tela pronta
-//
+// 
 
 class Gastos extends StatefulWidget {
   const Gastos({super.key});

@@ -6,10 +6,10 @@ const gastoController = require('../controllers/gastoController');
 router.post('/', gastoController.criarGasto);
 
 // Listar todos os gastos 
-router.get('/todos', gastoController.listarTodos);
+router.get('/todos', gastoController.listarGastos);
 
 // Listar todos os gastos de um usuário
-router.get('/:idUsuario', gastoController.listarGastos);
+router.get('/:idUsuario', gastoController.listarTodos);
 
 // Buscar gasto por ID
 router.get('/detalhe/:id', gastoController.buscarGasto);

@@ -28,9 +28,10 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+ 
   flutter:
     sdk: flutter
-  intl: ^0.18.0
+  intl: ^0.20.2
   http: ^1.2.2 # para a conexão com a api
   google_fonts: ^6.1.0
   shared_preferences: ^2.3.2
