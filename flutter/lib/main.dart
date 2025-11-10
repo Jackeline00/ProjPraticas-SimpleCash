@@ -33,7 +33,6 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: Inicio(), 
-      //initialRoute: '/login', /// tela para testes
 
       routes: {
         "/login": (context) => const Login(),
