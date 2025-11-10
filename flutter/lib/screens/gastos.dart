@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/gasto_service.dart'; /// serviço que faz a requisição GET
 
-/// Tela em fase de testes
-/// ainda não funciona totalmente
+/// Tela pronta
 //
 
 class Gastos extends StatefulWidget {

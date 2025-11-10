@@ -249,8 +249,6 @@ module.exports = {
   criarGasto,
   listarTodos,
   listarGastos,
-  listarDescricoes,
-  listarValores,
   buscarGasto,
   atualizarGasto,
   deletarGasto

@@ -20,7 +20,8 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
   final _parcelasController = TextEditingController();
-  final _dataController = TextEditingController();
+  final _dataInicioController = TextEditingController();
+  final _dataFinalController = TextEditingController(); // <-- novo controller para data final
   final _jurosController = TextEditingController();
 
   int? _opcaoSelecionada; // quantidade de parcelas ou data final
@@ -42,7 +43,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     try {
       final id = await AuthService().buscarIdUsuario(email);
       setState(() {
-        idUsuario = id as int?;
+        idUsuario = id;
       });
     } catch (e) {
       print("Erro ao buscar ID do usuário: $e");
@@ -54,8 +55,8 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
       final valor = double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
       final descricao = _descricaoController.text;
       final repeticao = _frequenciaSelecionada ?? '1';
-      final dataInicio = _dataController.text;
-      final dataFinal = _opcaoSelecionada == 2 ? _dataController.text : '';
+      final dataInicio = _dataInicioController.text;
+      final dataFinal = _opcaoSelecionada == 2 ? _dataFinalController.text : '';
       final quantidadeDeParcelas = _opcaoSelecionada == 1 ? int.tryParse(_parcelasController.text) ?? 1 : 1;
       final juros = double.tryParse(_jurosController.text.replaceAll(',', '.')) ?? 0.0;
       final tipoJuros = _tipoJuros ?? '0';
@@ -87,7 +88,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     }
   }
 
-  Future<void> _selecionarData(BuildContext context) async {
+  Future<void> _selecionarData(BuildContext context, TextEditingController controller) async {
     final DateTime? selecionada = await showDatePicker(
       context: context,
       initialDate: _dataSelecionada ?? DateTime.now(),
@@ -99,7 +100,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     if (selecionada != null) {
       setState(() {
         _dataSelecionada = selecionada;
-        _dataController.text = DateFormat('dd/MM/yyyy').format(selecionada);
+        controller.text = DateFormat('dd/MM/yyyy').format(selecionada);
       });
     }
   }
@@ -154,18 +155,61 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
               const SizedBox(height: 30),
 
               /// ------ Valor ------
-              Text("Valor:"),
-              TextFormField(
-                controller: _valorController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Informe o valor';
-                  return null;
-                },
+              
+              Align(
+                child: Column(
+                  children: [
+                      Text(
+                        "Valor",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 142, 193, 243), // azul escuro, combinando com os ícones
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _valorController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                        ],
+                        style: const TextStyle(
+                          color: Colors.black, // cor do texto digitado
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Ex: 25.90',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          filled: true,
+                          fillColor: Color(0xFFF8F9FA), // leve cinza de fundo
+                          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15), // bordas arredondadas
+                            borderSide: const BorderSide(color: Color.fromARGB(255, 142, 193, 243), width: 1),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: const BorderSide(color: Color.fromARGB(255, 142, 193, 243), width: 1),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: const BorderSide(color: Color.fromARGB(255, 142, 193, 243), width: 2),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Informe o valor';
+                          return null;
+                        },
+                      ),
+
+
+                  ],
+                ),
               ),
+              
+              
+
 
               const SizedBox(height: 20),
 
@@ -242,14 +286,14 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
               /// ------ Data de início ------
               Text("Data de início *"),
               TextFormField(
-                controller: _dataController,
+                controller: _dataInicioController,
                 readOnly: true,
                 decoration: const InputDecoration(
                   labelText: 'Data',
                   prefixIcon: Icon(Icons.calendar_today),
                   border: OutlineInputBorder(),
                 ),
-                onTap: () => _selecionarData(context),
+                onTap: () => _selecionarData(context, _dataInicioController),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Informe a data';
                   return null;
@@ -290,10 +334,10 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                   ),
                   if (_opcaoSelecionada == 2)
                     TextFormField(
-                      controller: _dataController,
+                      controller: _dataFinalController, // <-- usa controller separado
                       readOnly: true,
                       decoration: const InputDecoration(border: OutlineInputBorder()),
-                      onTap: () => _selecionarData(context),
+                      onTap: () => _selecionarData(context, _dataFinalController),
                     ),
                 ],
               ),

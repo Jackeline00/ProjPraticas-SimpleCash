@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/screens/addGastos.dart';
+import 'package:frontend/screens/historico.dart';
 import 'package:frontend/screens/poupanca.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/login.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         "/adicionarGasto":(context) => const AdicionarGasto(),
         "/ganhos": (context) => const Ganhos(),
         //"/poupanca": (context) => const Poupanca(),
+        "/historico": (context) => const Historico(),
       },
     );
   }
