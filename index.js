@@ -1,6 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const { conectaBD } = require('./api/src/db/db.js'); 
 
 // importar rotas
 const usuarioRoutes = require('./api/src/routes/usuarioRoutes');
@@ -12,8 +13,18 @@ const historicoRoutes = require('./api/src/routes/historicoRoutes');
 const app = express();
 
 // middlewares
-app.use(cors()); // libera acesso externo (front-end em Flutter)
+app.use(cors()); // libera acesso externo (Flutter)
 app.use(express.json()); // permite receber JSON no req.body
+
+// tenta conectar ao banco ANTES de rodar o servidor
+(async () => {
+  try {
+    await conectaBD();
+    console.log('Conectado ao banco com sucesso!');
+  } catch (err) {
+    console.error('Falha na conexão com o banco:', err);
+  }
+})();
 
 // rotas
 app.use('/usuarios', usuarioRoutes);
@@ -22,12 +33,12 @@ app.use('/gastos', gastosRoutes);
 app.use('/poupanca', poupancaRoutes);
 app.use('/historico', historicoRoutes);
 
-// rota inicial só para teste
+// rota inicial de teste
 app.get('/', (req, res) => {
   res.send('API de SimpleCash rodando');
 });
 
-// porta do servidor (pode vir do .env ou default 3000)
+// porta do servidor
 const PORT = process.env.PORTA || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);

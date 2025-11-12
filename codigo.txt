@@ -1,12 +1,11 @@
 const sql = require('mssql');
 require('dotenv').config();
 
-const config = JSON.parse(process.env.STRING_CONNECTION); // converte a string JSON em objeto
+const config = process.env.STRING_CONNECTION; // pega a string de conexão
 
 async function conectaBD() {
   try {
     const pool = await sql.connect(config);
-    console.log('Conectado ao MSSQL');
     return pool;
   } catch (err) {
     console.error('Erro ao conectar no banco:', err);
