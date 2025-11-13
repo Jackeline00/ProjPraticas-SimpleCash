@@ -31,6 +31,7 @@ dependencies:
  
   flutter:
     sdk: flutter
+  mask_text_input_formatter: ^2.8.0
   intl: ^0.20.2
   http: ^1.2.2 # para a conexão com a api
   google_fonts: ^6.1.0

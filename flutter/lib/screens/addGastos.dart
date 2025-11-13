@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../services/gasto_service.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class AdicionarGasto extends StatefulWidget {
   const AdicionarGasto({super.key});
@@ -54,12 +55,9 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
   }
 
 Future<void> _selecionarData(BuildContext context, TextEditingController controller) async {
-  // Usa o contexto raiz do MaterialApp
-  final rootContext = Navigator.of(context, rootNavigator: true).context;
-
   try {
     final DateTime? selecionada = await showDatePicker(
-      context: rootContext,
+      context: context, // ← usa o context normal, não o rootNavigator
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
@@ -80,6 +78,7 @@ Future<void> _selecionarData(BuildContext context, TextEditingController control
     );
   }
 }
+
 
 
   Future<void> _criarNovoGasto() async {
@@ -180,6 +179,7 @@ Future<void> _selecionarData(BuildContext context, TextEditingController control
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
+
                 TextFormField(
                   controller: _valorController,
                   keyboardType:
@@ -267,20 +267,28 @@ Future<void> _selecionarData(BuildContext context, TextEditingController control
                 const Text("Data de início *"),
                 TextFormField(
                   controller: _dataInicioController,
-                  readOnly: true,
+                  keyboardType: TextInputType.datetime,
                   decoration: const InputDecoration(
                     labelText: 'Data',
                     prefixIcon: Icon(Icons.calendar_today),
+                    hintText: 'Ex: 13/11/2025',
                     border: OutlineInputBorder(),
                   ),
-                  onTap: () => _selecionarData(context, _dataInicioController),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Informe a data';
+                      return 'Informe uma data';
                     }
+
+                    // Expressão regular para validar formato dd/mm/aaaa
+                    final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
+                    if (!regex.hasMatch(value)) {
+                      return 'Use o formato dd/mm/aaaa';
+                    }
+
                     return null;
                   },
                 ),
+
 
                 const SizedBox(height: 20),
 
