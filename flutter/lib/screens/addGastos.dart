@@ -54,46 +54,51 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     }
   }
 
-Future<void> _selecionarData(BuildContext context, TextEditingController controller) async {
-  try {
-    final DateTime? selecionada = await showDatePicker(
-      context: context, // ← usa o context normal, não o rootNavigator
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      helpText: 'Selecione uma data',
-      cancelText: 'Cancelar',
-      confirmText: 'Confirmar',
-      locale: const Locale('pt', 'BR'),
-    );
+  Future<void> _selecionarData(BuildContext context, TextEditingController controller) async {
+    try {
+      final DateTime? selecionada = await showDatePicker(
+        context: context, // ← usa o context normal, não o rootNavigator
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100),
+        helpText: 'Selecione uma data',
+        cancelText: 'Cancelar',
+        confirmText: 'Confirmar',
+        locale: const Locale('pt', 'BR'),
+      );
 
-    if (selecionada != null) {
-      setState(() {
-        controller.text = DateFormat('dd/MM/yyyy').format(selecionada);
-      });
+      if (selecionada != null) {
+        setState(() {
+          controller.text = DateFormat('dd/MM/yyyy').format(selecionada);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao abrir calendário: $e')),
+      );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro ao abrir calendário: $e')),
-    );
   }
-}
 
-
+  String converterParaSql(String dataBR) {
+    final partes = dataBR.split('/');
+    final dia = partes[0];
+    final mes = partes[1];
+    final ano = partes[2];
+    return "$ano-$mes-$dia"; // yyyy-MM-dd
+  }
 
   Future<void> _criarNovoGasto() async {
     if (_formKey.currentState!.validate() && idUsuario != null) {
-      final valor =
-          double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
+      final valor = double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
       final descricao = _descricaoController.text;
       final repeticao = _frequenciaSelecionada ?? '1';
       final dataInicio = _dataInicioController.text;
-      final dataFinal =
-          _opcaoSelecionada == 2 ? _dataFinalController.text : '';
-      final quantidadeDeParcelas =
-          _opcaoSelecionada == 1 ? int.tryParse(_parcelasController.text) ?? 1 : 1;
-      final juros =
-          double.tryParse(_jurosController.text.replaceAll(',', '.')) ?? 0.0;
+      final dataFinal = _opcaoSelecionada == 2 ? _dataFinalController.text : '';
+      final dataInicioSql = converterParaSql(dataInicio);
+      final dataFinalSql = dataFinal.isNotEmpty ? converterParaSql(dataFinal) : null;
+
+      final quantidadeDeParcelas = _opcaoSelecionada == 1 ? int.tryParse(_parcelasController.text) ?? 1 : 1;
+      final juros = double.tryParse(_jurosController.text.replaceAll(',', '.')) ?? 0.0;
       final tipoJuros = _tipoJuros ?? '0';
 
       try {
@@ -103,7 +108,7 @@ Future<void> _selecionarData(BuildContext context, TextEditingController control
           descricao,
           valor,
           repeticao,
-          dataInicio,
+          dataInicioSql,
           dataFinal,
           quantidadeDeParcelas,
           juros,
@@ -320,14 +325,41 @@ Future<void> _selecionarData(BuildContext context, TextEditingController control
                       },
                     ),
                     if (_opcaoSelecionada == 2)
-                      TextFormField(
-                        controller: _dataFinalController,
-                        readOnly: true,
-                        decoration:
-                            const InputDecoration(border: OutlineInputBorder()),
-                        onTap: () =>
-                            _selecionarData(context, _dataFinalController),
+                     if (_opcaoSelecionada == 2)
+                    if (_opcaoSelecionada == 2)
+                    TextFormField(
+                      controller: _dataFinalController,
+                      keyboardType: TextInputType.datetime,
+                      decoration: const InputDecoration(
+                        labelText: 'Data final',
+                        hintText: 'Ex: 13/11/2025',
+                        border: OutlineInputBorder(),
                       ),
+                      validator: (value) {
+                        if (_opcaoSelecionada != 2) return null; 
+                        if (value == null || value.isEmpty) {
+                          return 'Informe uma data final';
+                        }
+
+                        final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
+                        if (!regex.hasMatch(value)) {
+                          return 'Use o formato dd/mm/aaaa';
+                        }
+
+                        final partes = value.split('/');
+                        final dia = int.tryParse(partes[0]) ?? 0;
+                        final mes = int.tryParse(partes[1]) ?? 0;
+                        final ano = int.tryParse(partes[2]) ?? 0;
+
+                        if (dia < 1 || dia > 31) return 'Dia inválido';
+                        if (mes < 1 || mes > 12) return 'Mês inválido';
+                        if (ano < 1900) return 'Ano inválido';
+
+                        return null;
+                      },
+                    ),
+
+
                   ],
                 ),
 

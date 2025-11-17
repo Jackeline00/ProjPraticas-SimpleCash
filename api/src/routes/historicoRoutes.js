@@ -12,13 +12,13 @@ router.get('/:idUsuario', historicoController.listarDados);
 router.get('/detalhe/:id', historicoController.buscarDado);
 
 // Buscar gastos de um usuário
-router.get('/gastos/:id', historicoController.buscarGastos);
+router.get('/gastos/:idUsuario', historicoController.buscarGastos);
 
 // Buscar ganhos de um usuário
-router.get('/ganhos/:id', historicoController.buscarGanhos);
+router.get('/ganhos/:idUsuario', historicoController.buscarGanhos);
 
 // Buscar poupanças de um usuário
-router.get('/poupancas/:id', historicoController.buscarPoupanca);
+router.get('/poupancas/:idUsuario', historicoController.buscarPoupanca);
 
 // Atualizar dado
 router.put('/:id', historicoController.atualizarDado);
