@@ -154,7 +154,7 @@ class _GastosScreen extends State<Gastos> {
                           ),
                         ),
                         onPressed: () {
-                            Navigator.pushNamed(context, '/historico', arguments: email); /// leva pra outra tela
+                            Navigator.pushNamed(context, '/historico', arguments: {'email': email, 'filtro': 'gastos'},); /// leva pra outra tela
                           },
                         child: const Text(
                           "Acessar histórico",

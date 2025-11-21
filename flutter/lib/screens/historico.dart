@@ -5,8 +5,9 @@ import '../services/ganho_service.dart';
 import '../services/poupanca_service.dart';
 import '../services/auth_service.dart';
 
-// --- NOVO MODELO DE DADOS ---
+// --- ENUMS E MODELOS ---
 enum TipoMovimento { gasto, ganho, deposito }
+enum FiltroAtivo { todos, gastos, ganhos, depositos } 
 
 class HistoricoItem {
   final TipoMovimento tipo;
@@ -25,7 +26,7 @@ class HistoricoItem {
     required this.corValor,
   });
 }
-// --- FIM NOVO MODELO DE DADOS ---
+// --- FIM ENUMS E MODELOS ---
 
 
 class Historico extends StatefulWidget {
@@ -41,22 +42,31 @@ class _HistoricoState extends State<Historico> {
   final GanhoService _ganhoService = GanhoService();
   final PoupancaService _poupancaService = PoupancaService();
 
-  List<HistoricoItem> _eventosAgrupados = [];
+  List<HistoricoItem> _eventosOriginais = []; 
+  List<HistoricoItem> _eventosAgrupados = []; 
   bool _carregando = true;
   int? _idUsuario;
+  FiltroAtivo _filtroAtual = FiltroAtivo.todos; 
 
-  @override
-  void initState() {
-    super.initState();
-    // A busca de ID será feita em didChangeDependencies
-  }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_idUsuario == null) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      final email = args is String ? args : '';
+      final Map<String, dynamic> argsMap = args is Map<String, dynamic> ? args : {};
+      
+      final email = argsMap['email'] ?? widget.email; 
+      final filtroInicialStr = argsMap['filtro'] ?? 'todos'; 
+
+      // Mapeamento do Filtro Inicial
+      _filtroAtual = switch (filtroInicialStr) {
+        'gastos' => FiltroAtivo.gastos,
+        'ganhos' => FiltroAtivo.ganhos,
+        'depositos' => FiltroAtivo.depositos,
+        _ => FiltroAtivo.todos,
+      };
+
       if (email.isNotEmpty) {
         _buscarIdEcarregar(email);
       } else {
@@ -73,7 +83,8 @@ class _HistoricoState extends State<Historico> {
           _idUsuario = id;
         });
         if (_idUsuario != null && _idUsuario! > 0) {
-          await _consolidarHistorico();
+          await _carregarDadosCompletos(); 
+          _aplicarFiltro(_filtroAtual); 
         } else {
           setState(() => _carregando = false);
         }
@@ -84,65 +95,64 @@ class _HistoricoState extends State<Historico> {
       }
     }
   }
-  
-  // --- LÓGICA DE GERAÇÃO DE EVENTOS RECORRENTES ---
+
+  // --- LÓGICA DE GERAÇÃO DE EVENTOS RECORRENTES (COMPLETA) ---
   List<HistoricoItem> _gerarRecorrentes(List<dynamic> lista, TipoMovimento tipo) {
     List<HistoricoItem> eventos = [];
     final hoje = DateTime.now();
-    final dataLimite = hoje.subtract(const Duration(days: 180)); // Histórico de 6 meses
+    final dataLimite = hoje.subtract(const Duration(days: 180)); 
 
     for (var item in lista) {
-      final dataInicioStr = item['dataInicio'];
-      if (dataInicioStr == null) continue;
+      // Tenta usar dataInicio ou dataCriacao para a data base
+      final dataBaseStr = item['dataInicio'] ?? item['dataCriacao'] ?? item['data'];
+      if (dataBaseStr == null) continue;
       
-      final dataInicio = DateTime.parse(dataInicioStr);
+      final dataBase = DateTime.parse(dataBaseStr);
       final repeticaoBD = item['repeticao'] ?? 'nenhuma';
-      final valor = item['valor'] as double? ?? 0.0;
+      // NOTA: O valor pode ser Double ou Int dependendo do DB. Forçar o cast:
+      final valor = double.tryParse(item['valor']?.toString() ?? '0.0') ?? 0.0; 
       final descricao = item['descricao'] ?? (item['origem'] ?? 'Sem descrição');
 
-      // Se for um evento pontual, adiciona apenas se for recente
+      // 1. Eventos pontuais (nenhuma repetição)
       if (repeticaoBD == 'nenhuma') {
-        final data = item['dataCriacao'] != null ? DateTime.parse(item['dataCriacao']) : dataInicio;
-        if (data.isAfter(dataLimite)) {
-          eventos.add(_criaItem(tipo, descricao, valor, data));
+        if (dataBase.isAfter(dataLimite)) {
+          eventos.add(_criaItem(tipo, descricao, valor, dataBase));
         }
         continue;
       }
 
-      // Lógica de Recorrência (mensal, semanal, etc.)
-      DateTime dataAtual = dataInicio;
+      // 2. Eventos recorrentes
+      DateTime dataAtual = dataBase;
       while (dataAtual.isBefore(hoje)) {
         if (dataAtual.isAfter(dataLimite)) {
           eventos.add(_criaItem(tipo, descricao, valor, dataAtual));
         }
         
-        // Avança para o próximo período (simplificado)
+        // Avança para o próximo período
         if (repeticaoBD == 'mensal') {
           dataAtual = DateTime(dataAtual.year, dataAtual.month + 1, dataAtual.day);
         } else if (repeticaoBD == 'semanal') {
           dataAtual = dataAtual.add(const Duration(days: 7));
         } else if (repeticaoBD == 'x_dias') {
-          final intervalo = item['intervaloDias'] ?? 30; // 30 dias se não houver
+          final intervalo = item['intervaloDias'] as int? ?? 30; // Padrão 30 dias
           dataAtual = dataAtual.add(Duration(days: intervalo));
         } else {
-          break; // Sai do loop se não souber a repetição
+          break; 
         }
       }
     }
     return eventos;
   }
   
-  // Função auxiliar para criar o HistoricoItem
+  // Função auxiliar para criar o HistoricoItem (Permanece)
   HistoricoItem _criaItem(TipoMovimento tipo, String descricao, double valor, DateTime data) {
     final bool isNegativo = tipo == TipoMovimento.gasto;
     final bool isDeposito = tipo == TipoMovimento.deposito;
     
-    // Mapeamento de cores e ícones (você precisará ter as imagens)
+    // As cores foram ajustadas para o padrão solicitado
     final cor = isNegativo ? Colors.red : (isDeposito ? Colors.orange : Colors.green);
-    final icon = isNegativo ? 'assets/images/menos.png' : (isDeposito ? 'assets/images/moedas.png' : 'assets/images/mais.png');
+    final icon = isNegativo ? 'assets/images/menos.png' : (isDeposito ? 'assets/images/deposito.png' : 'assets/images/mais.png');
     
-    // O valor para o item de gasto deve ser positivo para a soma (se necessário), 
-    // mas o sinal é dado pela cor/ícone. Aqui usamos o valor absoluto.
     return HistoricoItem(
       tipo: tipo,
       descricao: descricao,
@@ -154,53 +164,26 @@ class _HistoricoState extends State<Historico> {
   }
   // --- FIM LÓGICA DE GERAÇÃO DE EVENTOS RECORRENTES ---
 
-  Future<void> _consolidarHistorico() async {
+  Future<void> _carregarDadosCompletos() async {
     if (_idUsuario == null) return;
     try {
-      // 1. Busca todos os dados
+      // NOTA: Para Poupança, estamos usando mostrarPoupancas, que pode retornar 
+      // todos os eventos, que é o que precisamos.
       final gastosRaw = await _gastoService.mostrarGastos(_idUsuario!);
       final ganhosRaw = await _ganhoService.mostrarGanhos(_idUsuario!);
       final depositosRaw = await _poupancaService.mostrarPoupancas(_idUsuario!);
 
-      // 2. Converte e gera os eventos recorrentes
       final gastosEventos = _gerarRecorrentes(gastosRaw, TipoMovimento.gasto);
       final ganhosEventos = _gerarRecorrentes(ganhosRaw, TipoMovimento.ganho);
+      // NOTE: Para Depósitos, assumimos que são todos eventos recorrentes (TipoMovimento.deposito)
       final depositosEventos = _gerarRecorrentes(depositosRaw, TipoMovimento.deposito);
 
-      // 3. Consolida e ordena (mais recente no topo)
       final todosEventos = [...gastosEventos, ...ganhosEventos, ...depositosEventos];
-      todosEventos.sort((a, b) => b.data.compareTo(a.data)); // Ordena Decrescente (Mais recente primeiro)
-
-      // 4. Agrupa por dia para a UI
-      Map<String, List<HistoricoItem>> grupos = {};
-      final formatador = DateFormat('dd/MM/yyyy');
-      for (var item in todosEventos) {
-        final chaveDia = formatador.format(item.data);
-        if (!grupos.containsKey(chaveDia)) {
-          grupos[chaveDia] = [];
-        }
-        grupos[chaveDia]!.add(item);
-      }
-      
-      // Converte para uma lista simples para o ListView
-      List<HistoricoItem> listaFinal = [];
-      grupos.forEach((data, eventos) {
-        // Adiciona um item especial para o separador de data
-        listaFinal.add(HistoricoItem(
-          tipo: TipoMovimento.deposito, // Usa 'deposito' como tipo dummy para o separador
-          descricao: data, 
-          valor: 0, 
-          data: eventos.first.data, 
-          iconAsset: 'separador', // Flag
-          corValor: Colors.transparent,
-        ));
-        listaFinal.addAll(eventos);
-      });
-
+      todosEventos.sort((a, b) => b.data.compareTo(a.data)); // Mais recente no topo
 
       if (mounted) {
         setState(() {
-          _eventosAgrupados = listaFinal;
+          _eventosOriginais = todosEventos; 
           _carregando = false;
         });
       }
@@ -208,14 +191,90 @@ class _HistoricoState extends State<Historico> {
       if (mounted) {
         setState(() {
           _carregando = false;
-          // Em caso de erro, você pode querer adicionar um item de erro aqui
         });
       }
     }
   }
 
-  // --- WIDGET PARA O ITEM DO HISTÓRICO ---
+  // --- LÓGICA DE FILTRAGEM (NOVO) ---
+  void _aplicarFiltro(FiltroAtivo novoFiltro) {
+    List<HistoricoItem> eventosFiltrados = _eventosOriginais.where((item) {
+      if (item.iconAsset == 'separador') return true; // Mantém o separador
+
+      if (novoFiltro == FiltroAtivo.todos) return true;
+      if (novoFiltro == FiltroAtivo.gastos && item.tipo == TipoMovimento.gasto) return true;
+      if (novoFiltro == FiltroAtivo.ganhos && item.tipo == TipoMovimento.ganho) return true;
+      if (novoFiltro == FiltroAtivo.depositos && item.tipo == TipoMovimento.deposito) return true;
+      return false;
+    }).toList();
+    
+    // 4. Agrupa por dia para a UI
+    Map<String, List<HistoricoItem>> grupos = {};
+    final formatador = DateFormat('dd/MM/yyyy');
+    for (var item in eventosFiltrados) {
+      final chaveDia = formatador.format(item.data);
+      if (!grupos.containsKey(chaveDia)) {
+        grupos[chaveDia] = [];
+      }
+      grupos[chaveDia]!.add(item);
+    }
+    
+    // Converte para uma lista simples para o ListView com separadores
+    List<HistoricoItem> listaFinal = [];
+    grupos.forEach((data, eventos) {
+      // Adiciona um item especial para o separador de data
+      listaFinal.add(HistoricoItem(
+        tipo: TipoMovimento.deposito, 
+        descricao: data, 
+        valor: 0, 
+        data: eventos.first.data, 
+        iconAsset: 'separador', 
+        corValor: Colors.transparent,
+      ));
+      listaFinal.addAll(eventos);
+    });
+
+    setState(() {
+      _filtroAtual = novoFiltro;
+      _eventosAgrupados = listaFinal;
+    });
+  }
+  
+  // Função para mostrar o menu de filtro (janelinha)
+  void _mostrarMenuFiltro() {
+    // Calcula a posição para aparecer no canto superior direito
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset(button.size.width, 0), ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+    
+    showMenu<FiltroAtivo>(
+      context: context,
+      position: position, // Usa a posição calculada
+      items: FiltroAtivo.values.map((filtro) {
+        return PopupMenuItem<FiltroAtivo>(
+          value: filtro,
+          child: Text(filtro.name.substring(0, 1).toUpperCase() + filtro.name.substring(1)), 
+        );
+      }).toList(),
+    ).then((value) {
+      if (value != null) {
+        _aplicarFiltro(value);
+      }
+    });
+  }
+  // --- FIM LÓGICA DE FILTRAGEM (NOVO) ---
+
+
+  // --- WIDGETS ---
   Widget _buildHistoricoItem(HistoricoItem item) {
+    // ... (restante do seu código _buildHistoricoItem) ...
+    
     if (item.iconAsset == 'separador') {
       // Separador de Data
       return Padding(
@@ -223,7 +282,7 @@ class _HistoricoState extends State<Historico> {
         child: Row(
           children: [
             Text(
-              item.descricao, // É a data formatada
+              item.descricao, 
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(width: 8),
@@ -240,8 +299,8 @@ class _HistoricoState extends State<Historico> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFC7C7C7).withOpacity(0.3), // Fundo C7C7C7 com transparência
-        borderRadius: BorderRadius.circular(10.0), // Bordas arredondadas
+        color: const Color(0xFFC7C7C7).withOpacity(0.3), 
+        borderRadius: BorderRadius.circular(10.0), 
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -250,13 +309,13 @@ class _HistoricoState extends State<Historico> {
           Row(
             children: [
               Image.asset(
-                item.iconAsset, // Ícone do movimento (precisa existir nos assets)
+                item.iconAsset, 
                 width: 24,
                 height: 24,
               ),
               const SizedBox(width: 12),
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.45, // Limita a largura
+                width: MediaQuery.of(context).size.width * 0.45, 
                 child: Text(
                   item.descricao,
                   overflow: TextOverflow.ellipsis,
@@ -279,7 +338,7 @@ class _HistoricoState extends State<Historico> {
       ),
     );
   }
-  // --- FIM WIDGET PARA O ITEM DO HISTÓRICO ---
+  // --- FIM WIDGETS ---
 
 
   @override
@@ -289,7 +348,7 @@ class _HistoricoState extends State<Historico> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabeçalho (Título)
+            // 1. Cabeçalho e Botão Filtros
             Padding(
               padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 16.0, right: 16.0),
               child: Row(
@@ -307,29 +366,45 @@ class _HistoricoState extends State<Historico> {
                       color: Color(0xFF0D4590),
                     ),
                   ),
-                  // Placeholder para o botão de filtro (se existir)
-                  const SizedBox(width: 48), 
+                  // BOTÃO FILTROS
+                  TextButton(
+                    onPressed: _mostrarMenuFiltro,
+                    child: const Text("Filtros", style: TextStyle(color: Color(0xFF0D4590), fontWeight: FontWeight.bold)),
+                  ),
                 ],
               ),
             ),
             
-            // Filtro (Placeholder - Você deve adicionar sua UI de filtro aqui)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text("Filtros Aqui (Ex: Mês, Ano)", style: TextStyle(fontStyle: FontStyle.italic)),
-            ),
+            // 2. INDICADOR DE FILTRO ATIVO (Chip) - CORRIGIDO PARA ALINHAR À DIREITA
+            if (_filtroAtual != FiltroAtivo.todos)
+              Row( // Usa um Row para alinhar
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16.0, bottom: 8.0), // Padding à direita
+                    child: Chip(
+                      label: Text(
+                        "Filtro: ${_filtroAtual.name.substring(0, 1).toUpperCase() + _filtroAtual.name.substring(1)}",
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () => _aplicarFiltro(FiltroAtivo.todos), // Volta para 'Todos'
+                    ),
+                  ),
+                ],
+              ),
             
-            // Indicador de Carregamento
+            // 3. Indicador de Carregamento
             if (_carregando)
               const Center(child: Padding(
                 padding: EdgeInsets.all(20.0),
                 child: CircularProgressIndicator(),
               ))
             else 
-            // Lista do Histórico
+            // 4. Lista do Histórico
             Expanded(
               child: _eventosAgrupados.isEmpty
-                  ? const Center(child: Text("Nenhum movimento encontrado nos últimos 6 meses."))
+                  ? const Center(child: Text("Nenhum movimento encontrado nos últimos 6 meses com este filtro."))
                   : ListView.builder(
                       itemCount: _eventosAgrupados.length,
                       itemBuilder: (context, index) {

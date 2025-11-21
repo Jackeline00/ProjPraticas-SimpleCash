@@ -125,13 +125,25 @@ class _PoupancaState extends State<Poupanca> {
   }
   
   void _navegarParaHistorico() {
-    if (idUsuario == null) return;
-    Navigator.pushNamed(
-      context,
-      '/historico',
-      arguments: idUsuario!,
-    );
-  }
+  // A tela Poupança está enviando para o Histórico os dados de DEPOSITO
+  const String filtroDesejado = 'depositos'; 
+
+  // Não precisamos do idUsuario aqui, mas sim do email
+  // Usamos widget.email, pois o email é passado no construtor da Poupança
+  final String emailDoUsuario = widget.email; 
+
+  if (emailDoUsuario.isEmpty) return;
+
+  Navigator.pushNamed(
+    context,
+    '/historico',
+    // CORREÇÃO: Enviar o Map com o email e o filtro
+    arguments: {
+      'email': emailDoUsuario,
+      'filtro': filtroDesejado,
+    },
+  );
+}
 
 
   Widget _grafico() {
