@@ -239,7 +239,7 @@ class _HomeScreen extends State<Home>{
                         child: /// largura fixa para todos os botões
                           ElevatedButton(
                             onPressed: () {/// ação ao clicar
-                              Navigator.pushNamed(context, '/relatorio'); // manda para a tela de relatorios
+                              Navigator.pushNamed(context, '/relatorio', arguments: email); // manda para a tela de relatorios
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white, /// cor de fundo

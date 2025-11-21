@@ -15,6 +15,7 @@ import 'screens/inicio.dart';
 import "screens/editarGastos.dart";
 import "screens/addGanhos.dart";
 import "screens/addDeposito.dart";
+import "screens/relatorios.dart";
 
 void main() {
   runApp(const MyApp());
@@ -57,6 +58,12 @@ class MyApp extends StatelessWidget {
         "/adicionarGasto":(context) => const AdicionarGasto(),
         "/editarGasto": (context) => const EditarGasto(),
         "/ganhos": (context) => const Ganhos(),
+        "/relatorio": (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          // Tenta pegar o email dos argumentos (o que a Home deve enviar)
+          final email = args is String ? args : ''; 
+          return Relatorios(email: email); // <--- PASSA O EMAIL REQUERIDO
+        },
         "/poupanca": (context) {
             final args = ModalRoute.of(context)?.settings.arguments;
             final email = args is String ? args : ''; 
@@ -76,7 +83,7 @@ class MyApp extends StatelessWidget {
         },
         "/adicionarGanho": (context) => const AdicionarGanho(),
         "/editarGanho": (context) => const EditarGanho(),
-      
+        
       },
     );
   }
