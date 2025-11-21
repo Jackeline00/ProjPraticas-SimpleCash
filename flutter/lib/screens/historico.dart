@@ -29,8 +29,8 @@ class HistoricoItem {
 
 
 class Historico extends StatefulWidget {
-  final String email;
-  const Historico({super.key, required this.email}) // A tela deve receber o email/idUsuario!
+  final String email; 
+  const Historico({super.key, required this.email}); 
 
   @override
   State<Historico> createState() => _HistoricoState();
@@ -139,7 +139,7 @@ class _HistoricoState extends State<Historico> {
     
     // Mapeamento de cores e ícones (você precisará ter as imagens)
     final cor = isNegativo ? Colors.red : (isDeposito ? Colors.orange : Colors.green);
-    final icon = isNegativo ? 'assets/imagens/menos.png' : (isDeposito ? 'assets/imagens/moedas.png' : 'assets/imagens/mais.png');
+    final icon = isNegativo ? 'assets/images/menos.png' : (isDeposito ? 'assets/images/moedas.png' : 'assets/images/mais.png');
     
     // O valor para o item de gasto deve ser positivo para a soma (se necessário), 
     // mas o sinal é dado pela cor/ícone. Aqui usamos o valor absoluto.

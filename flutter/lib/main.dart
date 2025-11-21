@@ -14,9 +14,7 @@ import 'screens/ganhos.dart';
 import 'screens/inicio.dart';
 import "screens/editarGastos.dart";
 import "screens/addGanhos.dart";
-import "screens/editarGastos.dart";
 import "screens/addDeposito.dart";
-import "screens/poupanca.dart";
 
 void main() {
   runApp(const MyApp());
