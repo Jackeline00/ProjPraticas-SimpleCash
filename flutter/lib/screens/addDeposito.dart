@@ -1,63 +1,46 @@
+// Em flutter/lib/screens/addDeposito.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../services/auth_service.dart';
-import '../services/gasto_service.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import '../services/poupanca_service.dart';
 
-class AdicionarGasto extends StatefulWidget {
-  const AdicionarGasto({super.key});
+class AdicionarDeposito extends StatefulWidget { 
+  final int idUsuario;
+  const AdicionarDeposito({super.key, required this.idUsuario});
 
   @override
-  State<AdicionarGasto> createState() => _AdicionarGastoScreen();
+  State<AdicionarDeposito> createState() => _AdicionarDepositoScreen();
 }
 
-class _AdicionarGastoScreen extends State<AdicionarGasto> {
-  String email = '';
-  int? idUsuario;
+class _AdicionarDepositoScreen extends State<AdicionarDeposito> {
+  
+  late final int idUsuario = widget.idUsuario; 
 
   final _formKey = GlobalKey<FormState>();
 
-  final _descricaoController = TextEditingController();
+  // NOVO: Objetivo (Descrição)
+  final _objetivoController = TextEditingController(); 
+  // NOVO: Origem (Antiga Fonte)
+  final _origemController = TextEditingController(); 
   final _valorController = TextEditingController();
+
+  // Controladores para UI (Não essenciais para o save do Depósito)
   final _parcelasController = TextEditingController();
   final _dataInicioController = TextEditingController();
   final _dataFinalController = TextEditingController();
   final _jurosController = TextEditingController();
+  final _intervaloDiasController = TextEditingController(); 
 
   int? _opcaoSelecionada; 
   String? _frequenciaSelecionada;
-  String? _tipoJuros;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // recupera o email da rota, igual à tela de Gastos
-    final args = ModalRoute.of(context)?.settings.arguments;
-    email = args is String ? args : '';
-    print("E-mail recebido: $email");
-
-    _buscarIdUsuario();
-  }
-
-  Future<void> _buscarIdUsuario() async {
-    try {
-      final id = await AuthService().buscarIdUsuario(email);
-      if (mounted) {
-        setState(() {
-          idUsuario = id;
-        });
-      }
-    } catch (e) {
-      print("Erro ao buscar ID do usuário: $e");
-    }
-  }
-
+  // Funções de Data (mantidas)
   Future<void> _selecionarData(BuildContext context, TextEditingController controller) async {
+    // ... (lógica de seleção de data)
     try {
       final DateTime? selecionada = await showDatePicker(
-        context: context, // ← usa o context normal, não o rootNavigator
+        context: context, 
         initialDate: DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime(2100),
@@ -79,95 +62,70 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     }
   }
 
+  // Função de conversão corrigida para UTC
   String converterParaSql(String dataBR) {
     final partes = dataBR.split('/');
-    final dia = partes[0];
-    final mes = partes[1];
-    final ano = partes[2];
-    return "$ano-$mes-$dia"; // yyyy-MM-dd
+    final dia = int.parse(partes[0]);
+    final mes = int.parse(partes[1]);
+    final ano = int.parse(partes[2]);
+
+    final DateTime dataUtc = DateTime.utc(ano, mes, dia); 
+    return DateFormat('yyyy-MM-dd').format(dataUtc);
   }
 
-  Future<void> _criarNovoGasto() async {
-    if (_formKey.currentState!.validate() && idUsuario != null) {
-      final valor = double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
-      final descricao = _descricaoController.text;
-      final repeticao = _frequenciaSelecionada ?? '1';
+  Future<void> _criarNovoDeposito() async { 
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, preencha todos os campos obrigatórios.')),
+      );
+      return;
+    }
       
-      // CORREÇÃO: Mapeamento de 'repeticao' e determinação de 'tipoGasto' e 'intervaloDias'
-      String repeticaoBD;
-      final intervaloDias;
-      switch (repeticao) {
-        case '1':
-          repeticaoBD = 'nenhuma';
-          intervaloDias = null;
-          break;
-        case '2': // Mensal
-          repeticaoBD = 'mensal';
-          intervaloDias = null;
-          break;
-        case '3': // Semanal
-          repeticaoBD = 'semanal';
-          intervaloDias = null;
-          break;
-        case '4': // Diário (vamos assumir que '4' e '5' usam 'x_dias')
-        case '5': // Personalizada (provavelmente este deveria ser 'x_dias')
-          repeticaoBD = 'x_dias';
-          // Você NÃO está capturando o número de dias no Flutter, então vamos enviar NULL
-          intervaloDias = null; 
-          break;
-        default:
-          repeticaoBD = 'nenhuma';
-          intervaloDias = null;
-          break;
-        }
+    // 1. CAPTURA DOS CAMPOS ESSENCIAIS
+    final valor = double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
+    final origem = _origemController.text; // NOVO: Campo obrigatório
+    final objetivo = _objetivoController.text; // NOVO: Campo opcional (descricao)
+    final repeticao = _frequenciaSelecionada ?? '1';
 
-      final tipoGasto = repeticaoBD == 'nenhuma' ? 'variavel' : 'fixo'; // Determina o 'tipo'
-      final dataInicio = _dataInicioController.text;
-      final dataFinal = _opcaoSelecionada == 2 ? _dataFinalController.text : '';
-      final dataInicioSql = converterParaSql(dataInicio);
-      final dataFinalSql = dataFinal.isNotEmpty ? converterParaSql(dataFinal) : null;
+    // 2. MAPEAMENTO DA REPETIÇÃO (Flutter -> BD)
+    String repeticaoBD;
+    switch (repeticao) {
+      case '1': repeticaoBD = 'nenhuma'; break;
+      case '2': repeticaoBD = 'mensal'; break;
+      case '3': repeticaoBD = 'semanal'; break;
+      case '4': 
+      case '5': repeticaoBD = 'x_dias'; break;
+      default: repeticaoBD = 'nenhuma'; break;
+    }
+    
+    // 3. MAPEAMENTO DO TIPO (BD: 'fixa' ou 'variavel')
+    final tipoDeposito = repeticaoBD == 'nenhuma' ? 'variavel' : 'fixa'; 
+    
+    // 4. CHAMADA AO SERVIÇO (Com 6 Parâmetros)
+    try {
+      await PoupancaService().criarPoupanca( 
+        idUsuario, 
+        tipoDeposito, 
+        objetivo, // <--- 3º ARG: descricao (objetivo)
+        valor, 
+        repeticaoBD, 
+        origem, // <--- 6º ARG: origem
+      );
 
-      final quantidadeDeParcelas = _opcaoSelecionada == 1 ? int.tryParse(_parcelasController.text) ?? 1 : 1;
-      final juros = double.tryParse(_jurosController.text.replaceAll(',', '.')) ?? 0.0;
-      final tipoJurosBD = _tipoJuros == '0' ? 'simples' : (_tipoJuros == '1' ? 'composto' : 'nenhum');
-      final tipoJuros = _tipoJuros ?? '0';
-
-      try {
-        await GastoService().adicionarGasto(
-          idUsuario!,
-          tipoGasto, // <-- USA 'variavel' ou 'fixo'
-          descricao,
-          valor,
-          repeticaoBD, // <-- USA 'nenhuma', 'mensal', etc.
-          intervaloDias, // <-- USA null (ou o valor correto se capturado)
-          dataInicioSql,
-          dataFinalSql ?? '',
-          quantidadeDeParcelas,
-          juros,
-          tipoJurosBD, // <-- USA 'simples', 'composto', etc.
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gasto adicionado com sucesso!')),
-        );
-
-        Navigator.pop(context);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao adicionar gasto: $e')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Depósito adicionado com sucesso!')), 
+      );
+      
+      Navigator.pop(context, true); 
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao adicionar depósito: $e')), 
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (idUsuario == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -191,13 +149,13 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                           height: 24,
                         ),
                         onPressed: () {
-                          Navigator.pushNamed(context, '/gastos', arguments: email);
+                          Navigator.pop(context); 
                         },
                       ),
                     ),
                     const Center(
                       child: Text(
-                        "Novo gasto",
+                        "Novo depósito", 
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -216,7 +174,6 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
-
                 TextFormField(
                   controller: _valorController,
                   keyboardType:
@@ -238,24 +195,42 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
 
                 const SizedBox(height: 20),
 
-                /// ------ Descrição ------
-                const Text("Descrição *"),
+                /// ------ Origem do valor depositado (NOVO CAMPO, OBRIGATÓRIO) ------
+                const Text("Origem do valor depositado *"),
                 TextFormField(
-                  controller: _descricaoController,
+                  controller: _origemController, 
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
-                  decoration: const InputDecoration(border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(), 
+                    hintText: 'Ex. 13º salário', // <--- TEXTO DE EXEMPLO
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Informe a descrição';
+                      return 'Informe a origem do valor';
                     }
                     return null;
                   },
                 ),
 
                 const SizedBox(height: 20),
+                
+                /// ------ Objetivo para o depósito (Antiga Descrição, AGORA OPCIONAL) ------
+                const Text("Objetivo para o depósito"),
+                TextFormField(
+                  controller: _objetivoController, // <--- CONTROLLER DO OBJETIVO
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(), 
+                    hintText: 'Ex: Viagem de férias',
+                  ),
+                  // O campo é opcional, então não precisa de validator.
+                ),
 
-                /// ------ Frequência ------
+                const SizedBox(height: 20),
+
+                /// ------ Frequência (Repetição) ------
                 const Text("Frequência *"),
                 RadioListTile<String>(
                   title: const Text('Sem repetição'),
@@ -299,13 +274,32 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                 ),
 
                 const SizedBox(height: 20),
+                
+                // Campo Intervalo de Dias
+                if (_frequenciaSelecionada == '4' || _frequenciaSelecionada == '5')
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Intervalo de Dias (para Personalizada/Diário)"),
+                      TextFormField(
+                        controller: _intervaloDiasController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration:
+                            const InputDecoration(border: OutlineInputBorder(), hintText: 'Ex: 30'),
+                      ),
+                    ],
+                  ),
+                ),
 
-                /// ------ Data de início ------
+                /// ------ Data de início (IGNORADO PELO BD) ------
                 const Text("Data de início *"),
                 TextFormField(
                   controller: _dataInicioController,
-                  readOnly: true,
-                  onTap: () => _selecionarData(context, _dataInicioController),
+                  readOnly: true, 
+                  onTap: () => _selecionarData(context, _dataInicioController), 
                   keyboardType: TextInputType.datetime,
                   decoration: const InputDecoration(
                     labelText: 'Data',
@@ -317,21 +311,17 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                     if (value == null || value.isEmpty) {
                       return 'Informe uma data';
                     }
-
-                    // Expressão regular para validar formato dd/mm/aaaa
                     final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
                     if (!regex.hasMatch(value)) {
                       return 'Use o formato dd/mm/aaaa';
                     }
-
                     return null;
                   },
                 ),
 
-
                 const SizedBox(height: 20),
 
-                /// ------ Parcelas / Data Final ------
+                /// ------ Parcelas / Data Final (IGNORADO PELO BD) ------
                 Column(
                   children: [
                     RadioListTile<int>(
@@ -359,12 +349,10 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                       },
                     ),
                     if (_opcaoSelecionada == 2)
-                     if (_opcaoSelecionada == 2)
-                    if (_opcaoSelecionada == 2)
                     TextFormField(
                       controller: _dataFinalController,
-                      readOnly: true,
-                      onTap: () => _selecionarData(context, _dataFinalController),
+                      readOnly: true, 
+                      onTap: () => _selecionarData(context, _dataFinalController), 
                       keyboardType: TextInputType.datetime,
                       decoration: const InputDecoration(
                         labelText: 'Data final',
@@ -376,33 +364,20 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                         if (value == null || value.isEmpty) {
                           return 'Informe uma data final';
                         }
-
                         final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
                         if (!regex.hasMatch(value)) {
                           return 'Use o formato dd/mm/aaaa';
                         }
-
-                        final partes = value.split('/');
-                        final dia = int.tryParse(partes[0]) ?? 0;
-                        final mes = int.tryParse(partes[1]) ?? 0;
-                        final ano = int.tryParse(partes[2]) ?? 0;
-
-                        if (dia < 1 || dia > 31) return 'Dia inválido';
-                        if (mes < 1 || mes > 12) return 'Mês inválido';
-                        if (ano < 1900) return 'Ano inválido';
-
                         return null;
                       },
                     ),
-
-
                   ],
                 ),
 
                 const SizedBox(height: 20),
-
-                /// ------ Juros ------
-                const Text("Juros"),
+                
+                /// ------ Juros (Campo Único e OBRIGATÓRIO) ------
+                const Text("Juros *"),
                 TextFormField(
                   controller: _jurosController,
                   keyboardType:
@@ -410,29 +385,18 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
                   ],
-                ),
-
-                const SizedBox(height: 20),
-
-                /// ------ Tipo de juros ------
-                const Text("Tipo de juros"),
-                RadioListTile<String>(
-                  title: const Text('Simples'),
-                  value: '0',
-                  groupValue: _tipoJuros,
-                  onChanged: (value) {
-                    setState(() => _tipoJuros = value);
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Ex: 0.50',
+                  ),
+                  validator: (value) { 
+                    if (value == null || value.isEmpty) {
+                      return 'Informe o valor dos juros (pode ser 0)';
+                    }
+                    return null;
                   },
                 ),
-                RadioListTile<String>(
-                  title: const Text('Composto'),
-                  value: '1',
-                  groupValue: _tipoJuros,
-                  onChanged: (value) {
-                    setState(() => _tipoJuros = value);
-                  },
-                ),
-
+                
                 const SizedBox(height: 30),
 
                 /// ------ Botão Criar ------
@@ -440,7 +404,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: _criarNovoGasto,
+                      onPressed: _criarNovoDeposito,
                       child: const Text('Criar'),
                     ),
                   ],
@@ -453,4 +417,3 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     );
   }
 }
-

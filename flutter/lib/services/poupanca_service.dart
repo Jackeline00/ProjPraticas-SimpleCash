@@ -1,21 +1,28 @@
 import 'dart:convert'; 
 import 'package:http/http.dart' as http;
 
-class PoupancaService {
+class PoupancaService { 
   final String baseUrl = 'http://localhost:8090';
 
-  Future<bool> criarPoupanca(int idUsuario, String tipo, String descricao, double valor, String data, int repeticao, String origem) async{
+  // CORREÇÃO: Função criarPoupanca (baseada no Controller do Node.js)
+  Future<bool> criarPoupanca(
+    int idUsuario, 
+    String tipo, 
+    String descricao, // Que será o Objetivo (opcional)
+    double valor, 
+    String repeticao, // Para o campo 'repeticao' do BD
+    String origem // Para o campo 'origem' do BD
+  ) async{
     final response = await http.post(
-      Uri.parse('$baseUrl/poupanca/'),
+      Uri.parse('$baseUrl/poupanca/'), // Endpoint correto
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "idUsuario":idUsuario, 
-        "tipo":tipo, 
-        "descricao":descricao, 
-        "valor":valor, 
-        "data":data, 
-        "repeticao":repeticao, 
-        "origem":origem
+        "idUsuario": idUsuario,
+        "tipo": tipo,
+        "descricao": descricao,
+        "valor": valor,
+        "repeticao": repeticao, // CORRETO
+        "origem": origem // CORRETO
       })
     );
 
@@ -82,6 +89,4 @@ class PoupancaService {
       return false;
     }
   }
-
-
 }

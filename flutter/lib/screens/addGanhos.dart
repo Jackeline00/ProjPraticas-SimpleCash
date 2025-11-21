@@ -1,18 +1,19 @@
+// Em flutter/lib/screens/addGanho.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
-import '../services/gasto_service.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import '../services/ganho_service.dart'; 
 
-class AdicionarGasto extends StatefulWidget {
-  const AdicionarGasto({super.key});
+class AdicionarGanho extends StatefulWidget { 
+  const AdicionarGanho({super.key});
 
   @override
-  State<AdicionarGasto> createState() => _AdicionarGastoScreen();
+  State<AdicionarGanho> createState() => _AdicionarGanhoScreen();
 }
 
-class _AdicionarGastoScreen extends State<AdicionarGasto> {
+class _AdicionarGanhoScreen extends State<AdicionarGanho> {
   String email = '';
   int? idUsuario;
 
@@ -20,24 +21,24 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
 
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
+  
+  // Variáveis para a UI (mantidas, mesmo que o backend as ignore temporariamente)
   final _parcelasController = TextEditingController();
   final _dataInicioController = TextEditingController();
   final _dataFinalController = TextEditingController();
   final _jurosController = TextEditingController();
-
+  final _intervaloDiasController = TextEditingController();
+  
   int? _opcaoSelecionada; 
   String? _frequenciaSelecionada;
   String? _tipoJuros;
+  String? _ganhoParaPoupanca; 
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // recupera o email da rota, igual à tela de Gastos
     final args = ModalRoute.of(context)?.settings.arguments;
     email = args is String ? args : '';
-    print("E-mail recebido: $email");
-
     _buscarIdUsuario();
   }
 
@@ -54,10 +55,11 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     }
   }
 
+  // Funções de Data (mantidas para a UI)
   Future<void> _selecionarData(BuildContext context, TextEditingController controller) async {
     try {
       final DateTime? selecionada = await showDatePicker(
-        context: context, // ← usa o context normal, não o rootNavigator
+        context: context, 
         initialDate: DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime(2100),
@@ -79,82 +81,56 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     }
   }
 
+  // Função de conversão (mantida para a UI)
   String converterParaSql(String dataBR) {
     final partes = dataBR.split('/');
-    final dia = partes[0];
-    final mes = partes[1];
-    final ano = partes[2];
-    return "$ano-$mes-$dia"; // yyyy-MM-dd
+    final dia = int.parse(partes[0]);
+    final mes = int.parse(partes[1]);
+    final ano = int.parse(partes[2]);
+    final DateTime dataUtc = DateTime.utc(ano, mes, dia); 
+    return DateFormat('yyyy-MM-dd').format(dataUtc);
   }
 
-  Future<void> _criarNovoGasto() async {
+  Future<void> _criarNovoGanho() async { 
     if (_formKey.currentState!.validate() && idUsuario != null) {
+      
+      // 1. CAPTURA APENAS OS CAMPOS NECESSÁRIOS PARA O BD
       final valor = double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
       final descricao = _descricaoController.text;
       final repeticao = _frequenciaSelecionada ?? '1';
-      
-      // CORREÇÃO: Mapeamento de 'repeticao' e determinação de 'tipoGasto' e 'intervaloDias'
+
+      // 2. MAPEAMENTO DA REPETIÇÃO (Flutter -> BD)
       String repeticaoBD;
-      final intervaloDias;
       switch (repeticao) {
-        case '1':
-          repeticaoBD = 'nenhuma';
-          intervaloDias = null;
-          break;
-        case '2': // Mensal
-          repeticaoBD = 'mensal';
-          intervaloDias = null;
-          break;
-        case '3': // Semanal
-          repeticaoBD = 'semanal';
-          intervaloDias = null;
-          break;
-        case '4': // Diário (vamos assumir que '4' e '5' usam 'x_dias')
-        case '5': // Personalizada (provavelmente este deveria ser 'x_dias')
-          repeticaoBD = 'x_dias';
-          // Você NÃO está capturando o número de dias no Flutter, então vamos enviar NULL
-          intervaloDias = null; 
-          break;
-        default:
-          repeticaoBD = 'nenhuma';
-          intervaloDias = null;
-          break;
-        }
-
-      final tipoGasto = repeticaoBD == 'nenhuma' ? 'variavel' : 'fixo'; // Determina o 'tipo'
-      final dataInicio = _dataInicioController.text;
-      final dataFinal = _opcaoSelecionada == 2 ? _dataFinalController.text : '';
-      final dataInicioSql = converterParaSql(dataInicio);
-      final dataFinalSql = dataFinal.isNotEmpty ? converterParaSql(dataFinal) : null;
-
-      final quantidadeDeParcelas = _opcaoSelecionada == 1 ? int.tryParse(_parcelasController.text) ?? 1 : 1;
-      final juros = double.tryParse(_jurosController.text.replaceAll(',', '.')) ?? 0.0;
-      final tipoJurosBD = _tipoJuros == '0' ? 'simples' : (_tipoJuros == '1' ? 'composto' : 'nenhum');
-      final tipoJuros = _tipoJuros ?? '0';
-
+        case '1': repeticaoBD = 'nenhuma'; break;
+        case '2': repeticaoBD = 'mensal'; break;
+        case '3': repeticaoBD = 'semanal'; break;
+        case '4': 
+        case '5': repeticaoBD = 'x_dias'; break;
+        default: repeticaoBD = 'nenhuma'; break;
+      }
+      
+      // 3. MAPEAMENTO DO TIPO (BD: 'variavel' ou 'fixo')
+      final tipoGanho = repeticaoBD == 'nenhuma' ? 'variavel' : 'fixo'; 
+      
+      // 4. CHAMADA AO SERVIÇO (Com APENAS 5 Parâmetros)
       try {
-        await GastoService().adicionarGasto(
-          idUsuario!,
-          tipoGasto, // <-- USA 'variavel' ou 'fixo'
-          descricao,
-          valor,
-          repeticaoBD, // <-- USA 'nenhuma', 'mensal', etc.
-          intervaloDias, // <-- USA null (ou o valor correto se capturado)
-          dataInicioSql,
-          dataFinalSql ?? '',
-          quantidadeDeParcelas,
-          juros,
-          tipoJurosBD, // <-- USA 'simples', 'composto', etc.
+        await GanhoService().adicionarGanho( 
+          idUsuario!,              // 1
+          valor,                    // 2
+          descricao,                // 3
+          tipoGanho,                // 4
+          repeticaoBD,              // 5
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gasto adicionado com sucesso!')),
+          const SnackBar(content: Text('Ganho adicionado com sucesso!')), 
         );
 
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao adicionar gasto: $e')),
+          SnackBar(content: Text('Erro ao adicionar ganho: $e')), 
         );
       }
     }
@@ -162,6 +138,9 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
 
   @override
   Widget build(BuildContext context) {
+    // ... (o restante do build é a UI completa que você pediu)
+    // Eu incluí o build completo da minha resposta anterior para você
+    
     if (idUsuario == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -191,13 +170,13 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                           height: 24,
                         ),
                         onPressed: () {
-                          Navigator.pushNamed(context, '/gastos', arguments: email);
+                          Navigator.pop(context); 
                         },
                       ),
                     ),
                     const Center(
                       child: Text(
-                        "Novo gasto",
+                        "Novo ganho", 
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -216,7 +195,6 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
-
                 TextFormField(
                   controller: _valorController,
                   keyboardType:
@@ -255,7 +233,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
 
                 const SizedBox(height: 20),
 
-                /// ------ Frequência ------
+                /// ------ Frequência (Repetição) ------
                 const Text("Frequência *"),
                 RadioListTile<String>(
                   title: const Text('Sem repetição'),
@@ -299,13 +277,32 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                 ),
 
                 const SizedBox(height: 20),
+                
+                // Campo Intervalo de Dias
+                if (_frequenciaSelecionada == '4' || _frequenciaSelecionada == '5')
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Intervalo de Dias (para Personalizada/Diário)"),
+                      TextFormField(
+                        controller: _intervaloDiasController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration:
+                            const InputDecoration(border: OutlineInputBorder(), hintText: 'Ex: 30'),
+                      ),
+                    ],
+                  ),
+                ),
 
                 /// ------ Data de início ------
                 const Text("Data de início *"),
                 TextFormField(
                   controller: _dataInicioController,
-                  readOnly: true,
-                  onTap: () => _selecionarData(context, _dataInicioController),
+                  readOnly: true, 
+                  onTap: () => _selecionarData(context, _dataInicioController), 
                   keyboardType: TextInputType.datetime,
                   decoration: const InputDecoration(
                     labelText: 'Data',
@@ -317,17 +314,13 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                     if (value == null || value.isEmpty) {
                       return 'Informe uma data';
                     }
-
-                    // Expressão regular para validar formato dd/mm/aaaa
                     final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
                     if (!regex.hasMatch(value)) {
                       return 'Use o formato dd/mm/aaaa';
                     }
-
                     return null;
                   },
                 ),
-
 
                 const SizedBox(height: 20),
 
@@ -359,12 +352,10 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                       },
                     ),
                     if (_opcaoSelecionada == 2)
-                     if (_opcaoSelecionada == 2)
-                    if (_opcaoSelecionada == 2)
                     TextFormField(
                       controller: _dataFinalController,
-                      readOnly: true,
-                      onTap: () => _selecionarData(context, _dataFinalController),
+                      readOnly: true, 
+                      onTap: () => _selecionarData(context, _dataFinalController), 
                       keyboardType: TextInputType.datetime,
                       decoration: const InputDecoration(
                         labelText: 'Data final',
@@ -376,32 +367,40 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                         if (value == null || value.isEmpty) {
                           return 'Informe uma data final';
                         }
-
                         final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
                         if (!regex.hasMatch(value)) {
                           return 'Use o formato dd/mm/aaaa';
                         }
-
-                        final partes = value.split('/');
-                        final dia = int.tryParse(partes[0]) ?? 0;
-                        final mes = int.tryParse(partes[1]) ?? 0;
-                        final ano = int.tryParse(partes[2]) ?? 0;
-
-                        if (dia < 1 || dia > 31) return 'Dia inválido';
-                        if (mes < 1 || mes > 12) return 'Mês inválido';
-                        if (ano < 1900) return 'Ano inválido';
-
                         return null;
                       },
                     ),
-
-
                   ],
                 ),
 
                 const SizedBox(height: 20),
+                
+                /// ------ Ganho Destinado à Poupança? (IGNORADO PELO BD) ------
+                const Text("Ganho destinado à poupança?"),
+                RadioListTile<String>(
+                  title: const Text('Sim'),
+                  value: '1',
+                  groupValue: _ganhoParaPoupanca,
+                  onChanged: (value) {
+                    setState(() => _ganhoParaPoupanca = value);
+                  },
+                ),
+                RadioListTile<String>(
+                  title: const Text('Não'),
+                  value: '0',
+                  groupValue: _ganhoParaPoupanca,
+                  onChanged: (value) {
+                    setState(() => _ganhoParaPoupanca = value);
+                  },
+                ),
+                const SizedBox(height: 20),
+                /// ------ FIM NOVO CAMPO ------
 
-                /// ------ Juros ------
+                /// ------ Juros (IGNORADO PELO BD) ------
                 const Text("Juros"),
                 TextFormField(
                   controller: _jurosController,
@@ -414,7 +413,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
 
                 const SizedBox(height: 20),
 
-                /// ------ Tipo de juros ------
+                /// ------ Tipo de juros (IGNORADO PELO BD) ------
                 const Text("Tipo de juros"),
                 RadioListTile<String>(
                   title: const Text('Simples'),
@@ -440,7 +439,7 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: _criarNovoGasto,
+                      onPressed: _criarNovoGanho,
                       child: const Text('Criar'),
                     ),
                   ],
@@ -453,4 +452,3 @@ class _AdicionarGastoScreen extends State<AdicionarGasto> {
     );
   }
 }
-

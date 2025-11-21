@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class GastoService {
   final String baseUrl = 'http://localhost:8090';
 
-  Future<bool> adicionarGasto(int idUsuario, String tipo, String descricao, double valor, String repeticao, String dataInicio, String dataFinal, int quantidadeDeParcelas, double juros, String tipoJuros) async{
+  Future<bool> adicionarGasto(int idUsuario, String tipo, String descricao, double valor, String repeticao, int? intervaloDias, String dataInicio, String dataFinal, int quantidadeDeParcelas, double juros, String tipoJuros) async{
     final response = await http.post(
       Uri.parse('$baseUrl/gastos/'),
       headers: {"Content-Type": "application/json"},
@@ -14,6 +14,7 @@ class GastoService {
         "descricao": descricao,
         "valor": valor,
         "repeticao": repeticao,
+        "intervaloDias": intervaloDias,
         "dataInicio" : dataInicio,
         "dataFinal": dataFinal,
         "quantidadeDeParcelas": quantidadeDeParcelas,

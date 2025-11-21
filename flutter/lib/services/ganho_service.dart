@@ -4,7 +4,14 @@ import 'package:http/http.dart' as http;
 class GanhoService {
   final String baseUrl = 'http://localhost:8090';
 
-  Future<bool> adicionarGanho(int idUsuario, double valor, String descricao, String tipo, String repeticao) async{
+  Future<bool> adicionarGanho(
+    int idUsuario, 
+    double valor, 
+    String descricao, 
+    String tipo, 
+    String repeticao
+    // Os outros 7 campos (datas, juros, poupanca) serão ignorados aqui
+  ) async{
     final response = await http.post(
       Uri.parse('$baseUrl/ganhos/'),
       headers: {"Content-Type": "application/json"},
@@ -17,7 +24,7 @@ class GanhoService {
       })
     );
 
-    if(response.statusCode == 201){ /// se o ganho foi adicionado com sucesso
+    if(response.statusCode == 201){ 
       return true;
     }else{
       return false;

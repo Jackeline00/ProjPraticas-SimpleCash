@@ -17,8 +17,10 @@ async function criarGasto(req, res) {
       //.input('dataCriacao', dataCriacao)  // não é recebido, o próprio sistema coloca
       .input('repeticao', repeticao)                // nenhuma, mensal, semanal, anual
       .input('intervaloDias', intervaloDias)        // int -> null
-      .input('dataInicio', dataInicio)              // yyyy-mm-dd -> null
-      .input('dataFinal', dataFinal)                // yyyy-mm-dd -> null
+      //.input('dataInicio', dataInicio)              // yyyy-mm-dd -> null
+      //.input('dataFinal', dataFinal)                // yyyy-mm-dd -> null
+      .input('dataInicio', sql.VarChar(10), dataInicio) // <--- CORREÇÃO
+      .input('dataFinal', sql.VarChar(10), dataFinal)   // <--- CORREÇÃO
       .input('quantidadeDeParcelas', quantidadeDeParcelas) // int -> null
       .input('juros', juros)                        // decimal -> null
       .input('tipoJuros', tipoJuros)                // nenhum, simples, composto
@@ -59,7 +61,7 @@ async function listarGastos(req, res) {
 
 // Listar todos os gastos de um usuário
 async function listarTodos(req, res) {
-  const { idUsuario } = req.params;
+  const idUsuario = parseInt(req.params.idUsuario, 10);
 
   try {
     const pool = await conectaBD();
@@ -76,12 +78,14 @@ async function listarTodos(req, res) {
 
 // Buscar gasto por ID
 async function buscarGasto(req, res) {
-  const { id } = req.params;
+  //const { id } = req.params;
+  const id = parseInt(req.params.id, 10);
 
   try {
     const pool = await conectaBD();
     const result = await pool.request()
-      .input('idGasto', id)
+      .input('idGasto', sql.Int, id)
+      //.input('idGasto', id)
       .query('SELECT * FROM simpleCash.Gasto WHERE idGasto = @idGasto');
 
     if (result.recordset.length === 0) {
@@ -111,6 +115,8 @@ async function atualizarGasto(req, res) {
     juros,
     tipoJuros
   } = req.body;
+
+  const dataFinalParaBD = (dataFinal === null || dataFinal === undefined || dataFinal === '') ? null : dataFinal;
 
   if (Number.isNaN(idGasto)) {
     return res.status(400).json({ error: 'idGasto inválido.' });
@@ -152,8 +158,11 @@ async function atualizarGasto(req, res) {
         .input('tipo', sql.VarChar(100), tipo ?? gastoAntigo.tipo)
         .input('descricao', sql.VarChar(500), descricao ?? gastoAntigo.descricao)
         .input('valor', sql.Decimal(18, 2), novoValor)
-        .input('dataInicio', sql.Date, dataInicio ?? gastoAntigo.dataInicio)
-        .input('dataFinal', sql.Date, dataFinal ?? gastoAntigo.dataFinal)
+        ///.input('dataInicio', sql.Date, dataInicio ?? gastoAntigo.dataInicio)
+        //.input('dataFinal', sql.Date, dataFinal ?? gastoAntigo.dataFinal)
+        ///.input('dataFinal', sql.Date, dataFinalParaBD ?? gastoAntigo.dataFinal) 
+        .input('dataInicio', sql.VarChar(10), dataInicio ?? gastoAntigo.dataInicio) // <--- CORREÇÃO
+        .input('dataFinal', sql.VarChar(10), dataFinalParaBD ?? gastoAntigo.dataFinal) // <--- CORREÇÃO
         .input('repeticao', sql.VarChar(50), repeticao ?? gastoAntigo.repeticao)
         .input('intervaloDias', sql.Int, intervaloDias ?? gastoAntigo.intervaloDias)
         .input('quantidadeDeParcelas', sql.Int, quantidadeDeParcelas ?? gastoAntigo.quantidadeDeParcelas)
@@ -205,14 +214,16 @@ async function atualizarGasto(req, res) {
 
 // Deletar gasto
 async function deletarGasto(req, res) {
-  const { id } = req.params;
+  //const { id } = req.params;
+  const id = parseInt(req.params.id, 10);
 
   try {
     const pool = await conectaBD();
 
     // Buscar valor do gasto para ajustar saldo
     const result = await pool.request()
-      .input('idGasto', id)
+      .input('idGasto', sql.Int, id)
+      //.input('idGasto', id)
       .query('SELECT * FROM simpleCash.Gasto WHERE idGasto = @idGasto');
 
     if (result.recordset.length === 0) {
@@ -223,7 +234,8 @@ async function deletarGasto(req, res) {
 
     // Deletar gasto
     await pool.request()
-      .input('idGasto', id)
+      .input('idGasto', sql.Int, id)
+      //.input('idGasto', id)
       .query('DELETE FROM simpleCash.Gasto WHERE idGasto = @idGasto');
 
     // Atualizar saldo do usuário

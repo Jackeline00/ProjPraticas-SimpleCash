@@ -1,103 +1,93 @@
+// Em flutter/lib/screens/editarGanho.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../services/gasto_service.dart';
+import '../services/ganho_service.dart';
 
-class EditarGasto extends StatefulWidget {
-  const EditarGasto({super.key});
+class EditarGanho extends StatefulWidget {
+  const EditarGanho({super.key});
 
   @override
-  State<EditarGasto> createState() => _EditarGastoScreen();
+  State<EditarGanho> createState() => _EditarGanhoScreen();
 }
 
-class _EditarGastoScreen extends State<EditarGasto> {
+class _EditarGanhoScreen extends State<EditarGanho> {
   // Variáveis de Estado
-  late int idGastoPK; // Para a chave primária do gasto
-  late Map<String, dynamic> dadosGastoOriginal; // Dados recebidos
-  String email = '';
+  late int idGanhoPK; 
+  late Map<String, dynamic> dadosGanhoOriginal; 
   int? idUsuario;
-  bool _dadosCarregados = false;
 
   final _formKey = GlobalKey<FormState>();
 
+  // Controladores (Juros agora é um simples TextFormField)
   late TextEditingController _descricaoController;
   late TextEditingController _valorController;
+  late TextEditingController _jurosController; // Mantido
+  
+  // Controladores para UI (Não essenciais para o save do Ganho)
   late TextEditingController _parcelasController;
   late TextEditingController _dataInicioController;
   late TextEditingController _dataFinalController;
-  late TextEditingController _jurosController;
   late TextEditingController _intervaloDiasController;
 
-  
   // Variáveis de seleção (Estado)
-  int? _opcaoSelecionada; // 1 para Parcelas, 2 para Data Final
   String? _frequenciaSelecionada; // '1' a '5'
-  String? _tipoJuros; // '0' para Simples, '1' para Composto
+  String? _ganhoParaPoupanca; // '0' para Não, '1' para Sim
+  
+  // Variáveis de seleção (Estado - Ignoradas no Save)
+  int? _opcaoSelecionada; // 1 para Parcelas, 2 para Data Final
+  // String? _tipoJuros; // <--- REMOVIDO/IGNORADO
 
   bool _carregando = true;
+  bool _dadosCarregados = false; // Flag de controle
 
   @override
   void initState() {
     super.initState();
-    // REMOVA O 'late' na declaração do topo!
-    _descricaoController = TextEditingController(); 
+    _descricaoController = TextEditingController();
     _valorController = TextEditingController();
     _parcelasController = TextEditingController();
     _dataInicioController = TextEditingController();
     _dataFinalController = TextEditingController(); 
     _intervaloDiasController = TextEditingController(); 
     _jurosController = TextEditingController(); 
-}
+  }
 
-
+  // Função para formatar data (Leitura - do SQL para BR)
   String _formatDate(String? dateSql) {
     if (dateSql == null || dateSql.isEmpty || dateSql.startsWith('1900-01-01')) {
       return '';
     }
-
     try {
-      // 1. Parseia a data do BD (que é UTC por padrão do driver)
       final date = DateTime.parse(dateSql);
-    
-      // 2. CORREÇÃO: Usa .toLocal() APENAS no final para exibir no seu fuso, 
-      // mas a correção principal está no converterParaSql.
       return DateFormat('dd/MM/yyyy').format(date.toLocal()); 
     } catch (e) {
       return '';
     }
-}
-
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
 
-    // 1. LER ARGUMENTOS APENAS UMA VEZ
-    final Object? args = ModalRoute.of(context)?.settings.arguments;
-
-    // 2. SAIR IMEDIATAMENTE SE JÁ CARREGADO
-    // **Importante: Mantenha esta verificação logo após a leitura dos args**
     if (_dadosCarregados) {
       return;
     }
     
-    // 3. INICIAR CARREGAMENTO DE DADOS SE OS ARGUMENTOS SÃO VÁLIDOS
     if (args is Map<String, dynamic>) {
-      dadosGastoOriginal = args;
-
-      idGastoPK = dadosGastoOriginal['idGasto'] as int;
-      idUsuario = dadosGastoOriginal['idUsuario'] as int; 
+      dadosGanhoOriginal = args;
+      idGanhoPK = dadosGanhoOriginal['idGanho'] as int;
+      idUsuario = dadosGanhoOriginal['idUsuario'] as int; 
       
-      // 1. PREENCHER CONTROLADORES
-      _descricaoController.text = dadosGastoOriginal['descricao'] ?? '';
-      _valorController.text = dadosGastoOriginal['valor']?.toString().replaceAll('.', ',') ?? ''; 
+      // 1. PREENCHER CONTROLADORES PRINCIPAIS
+      _descricaoController.text = dadosGanhoOriginal['descricao'] ?? '';
+      _valorController.text = dadosGanhoOriginal['valor']?.toString().replaceAll('.', ',') ?? ''; 
       
-      // 2. INVERTER MAPEAMENTO para preencher variáveis de estado
-      final String repeticaoBD = dadosGastoOriginal['repeticao'] ?? 'nenhuma';
-      final int quantidadeParcelas = dadosGastoOriginal['quantidadeDeParcelas'] ?? 1;
-      final String tipoJurosBD = dadosGastoOriginal['tipoJuros'] ?? 'nenhum';
+      // 2. INVERTER MAPEAMENTO
+      final String repeticaoBD = dadosGanhoOriginal['repeticao'] ?? 'nenhuma';
       
-      // Mapeamento Repetição (BD -> Flutter)
       _frequenciaSelecionada = switch (repeticaoBD) {
         'nenhuma' => '1',
         'mensal' => '2',
@@ -106,50 +96,29 @@ class _EditarGastoScreen extends State<EditarGasto> {
         _ => '1' 
       };
 
-      // Mapeamento Juros (BD -> Flutter)
-      _tipoJuros = switch (tipoJurosBD) {
-        'simples' => '0',
-        'composto' => '1',
-        _ => 'nenhum' 
-      };
-      _jurosController.text = dadosGastoOriginal['juros']?.toString().replaceAll('.', ',') ?? '';
+      final String poupancaDestinoBD = dadosGanhoOriginal['poupancaDestino'] ?? 'nao';
+      _ganhoParaPoupanca = poupancaDestinoBD == 'sim' ? '1' : '0';
 
-      // Lógica de Parcelas / Data Final
-      if (quantidadeParcelas > 1) {
-        _opcaoSelecionada = 1; // Parcelas
-        _parcelasController.text = quantidadeParcelas.toString();
-      } else if (dadosGastoOriginal['dataFinal'] != null && dadosGastoOriginal['dataFinal'] != '1900-01-01T00:00:00.000Z') {
-        _opcaoSelecionada = 2; // Data Final
-        _dataFinalController.text = _formatDate(dadosGastoOriginal['dataFinal']); // <--- AGORA A DATA INICIAL APARECE
-      } else {
-        _opcaoSelecionada = null; // Nenhuma selecionada
-      }
+
+      // 3. PREENCHER CONTROLADORES E VARIÁVEIS DA UI NÃO ESSENCIAIS
+      _dataInicioController.text = _formatDate(dadosGanhoOriginal['dataInicio']); 
+      _dataFinalController.text = _formatDate(dadosGanhoOriginal['dataFinal']);
       
-      // Datas: DATA INÍCIO
-      _dataInicioController.text = _formatDate(dadosGastoOriginal['dataInicio']); // <--- CORREÇÃO PRINCIPAL: Preenche a data!
+      // Juros: Preenche o valor (ignora o tipo de juros)
+      _jurosController.text = dadosGanhoOriginal['juros']?.toString().replaceAll('.', ',') ?? '';
       
-      // Intervalo Dias (x_dias)
-      if (repeticaoBD == 'x_dias' && dadosGastoOriginal['intervaloDias'] != null) {
-        _intervaloDiasController.text = dadosGastoOriginal['intervaloDias'].toString();
-      }
-
-      setState(() {
-        _carregando = false;
-        _dadosCarregados = true; // <--- SETA A FLAG
-      });
-
-    } else {
-      // Se não veio o Map, para o loading.
       setState(() {
         _carregando = false;
         _dadosCarregados = true;
       });
+
+    } else {
+      setState(() => _carregando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erro: ID do Gasto não fornecido.")),
+        const SnackBar(content: Text("Erro: ID do Ganho não fornecido.")),
       );
     }
   }
-  // --- Funções Auxiliares (do AddGasto.dart) ---
   
   // Função para abrir o DatePicker
   Future<void> _selecionarData(BuildContext context, TextEditingController controller) async {
@@ -177,28 +146,20 @@ class _EditarGastoScreen extends State<EditarGasto> {
     }
   }
 
-  // Função para converter data BR para SQL
+
+  // Função para converter data BR para SQL (Escrita - Correção de Fuso)
   String converterParaSql(String dataBR) {
-    // A dataBR está no formato 'dd/MM/yyyy'
     final partes = dataBR.split('/');
     final dia = int.parse(partes[0]);
     final mes = int.parse(partes[1]);
     final ano = int.parse(partes[2]);
 
-    // CORREÇÃO ESSENCIAL: Cria o objeto DateTime como UTC
-    // Isso 'neutraliza' o fuso horário antes de enviar.
     final DateTime dataUtc = DateTime.utc(ano, mes, dia); 
-    
-    // Formata a data de volta para a string SQL pura
     return DateFormat('yyyy-MM-dd').format(dataUtc);
-}
-  
-  // --- FIM das Funções Auxiliares ---
+  }
 
-
-  // Função principal para salvar alterações (Antiga _criarNovoGasto)
+  // Função principal para salvar alterações
   Future<void> _salvarAlteracoes() async {
-    // 1. Validação do formulário
     if (!_formKey.currentState!.validate() || idUsuario == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, preencha o formulário corretamente.')),
@@ -206,81 +167,44 @@ class _EditarGastoScreen extends State<EditarGasto> {
       return;
     }
 
-    // 2. Captura e Mapeamento dos dados
+    // 1. CAPTURA APENAS OS CAMPOS NECESSÁRIOS PARA O BD
     final valor = double.tryParse(_valorController.text.replaceAll(',', '.')) ?? 0.0;
     final descricao = _descricaoController.text;
-    final dataInicio = _dataInicioController.text;
-    
-    // Captura do valor do Flutter
-    final repeticao = _frequenciaSelecionada ?? '1'; // Ex: '1', '2', '3'
+    final repeticao = _frequenciaSelecionada ?? '1';
 
-    // Mapeamento Repetição (Flutter -> BD)
+    // 2. MAPEAMENTO DA REPETIÇÃO (Flutter -> BD)
     String repeticaoBD;
-    final intervaloDias;
     switch (repeticao) {
-      case '1':
-        repeticaoBD = 'nenhuma';
-        intervaloDias = null;
-        break;
-      case '2':
-        repeticaoBD = 'mensal';
-        intervaloDias = null;
-        break;
-      case '3':
-        repeticaoBD = 'semanal';
-        intervaloDias = null;
-        break;
-      case '4': // Diário
-      case '5': // Personalizada (Mapeia para x_dias se estiver usando este campo)
-        repeticaoBD = 'x_dias';
-        intervaloDias = int.tryParse(_intervaloDiasController.text) ?? null;
-        break;
-      default:
-        repeticaoBD = 'nenhuma';
-        intervaloDias = null;
-        break;
+      case '1': repeticaoBD = 'nenhuma'; break;
+      case '2': repeticaoBD = 'mensal'; break;
+      case '3': repeticaoBD = 'semanal'; break;
+      case '4': 
+      case '5': repeticaoBD = 'x_dias'; break;
+      default: repeticaoBD = 'nenhuma'; break;
     }
     
-    // Determinação do Tipo (BD: 'variavel' ou 'fixo')
-    final tipoGasto = repeticaoBD == 'nenhuma' ? 'variavel' : 'fixo';
-
-    // Mapeamento Juros (Flutter -> BD)
-    final juros = double.tryParse(_jurosController.text.replaceAll(',', '.')) ?? 0.0;
-    final tipoJurosBD = _tipoJuros == '0' ? 'simples' : (_tipoJuros == '1' ? 'composto' : 'nenhum');
+    // 3. MAPEAMENTO DO TIPO (BD: 'variavel' ou 'fixo')
+    final tipoGanho = repeticaoBD == 'nenhuma' ? 'variavel' : 'fixo'; 
     
-    // Mapeamento Datas
-    final dataFinal = _opcaoSelecionada == 2 ? _dataFinalController.text : '';
-    final dataInicioSql = converterParaSql(dataInicio);
-    final dataFinalSql = dataFinal.isNotEmpty ? converterParaSql(dataFinal) : null;
-    
-    // Parcelas
-    final quantidadeDeParcelas = _opcaoSelecionada == 1 ? int.tryParse(_parcelasController.text) ?? 1 : 1;
-    
-    // 3. Chamada ao Serviço de EDIÇÃO
+    // 4. CHAMADA AO SERVIÇO (Com APENAS 5 Parâmetros)
     try {
-      await GastoService().editar( // <--- CHAMAR A FUNÇÃO DE EDIÇÃO
-        idGastoPK, // <--- ID DO GASTO PARA EDIÇÃO
-        idUsuario!,
-        tipoGasto, 
-        descricao,
-        valor,
-        repeticaoBD,
-        dataInicioSql,
-        dataFinalSql ?? '', // Envia null se for vazio
-        quantidadeDeParcelas,
-        juros,
-        tipoJurosBD,
+      await GanhoService().editar( 
+        idGanhoPK,                  
+        idUsuario!,                 
+        valor,                      
+        descricao,                  
+        tipoGanho,                  
+        repeticaoBD,                
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gasto atualizado com sucesso!')), 
+        const SnackBar(content: Text('Ganho atualizado com sucesso!')), 
       );
 
-      // Retorna para a tela anterior
       Navigator.pop(context); 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao atualizar gasto: $e')),
+        SnackBar(content: Text('Erro ao atualizar ganho: $e')), 
       );
     }
   }
@@ -293,11 +217,6 @@ class _EditarGastoScreen extends State<EditarGasto> {
       );
     }
 
-    // O restante do seu Widget build do AddGasto.dart virá aqui, com:
-    // 1. O título 'Novo Gasto' mudado para 'Editar Gasto'.
-    // 2. Os onTaps adicionados nos campos de data.
-    // 3. O botão 'Criar' mudado para 'Salvar' e chamando _salvarAlteracoes.
-    
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -321,13 +240,13 @@ class _EditarGastoScreen extends State<EditarGasto> {
                           height: 24,
                         ),
                         onPressed: () {
-                          Navigator.pop(context); // Apenas volta
+                          Navigator.pop(context); 
                         },
                       ),
                     ),
                     const Center(
                       child: Text(
-                        "Editar gasto", // <--- TITULO ALTERADO
+                        "Editar ganho", 
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -346,7 +265,6 @@ class _EditarGastoScreen extends State<EditarGasto> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
-
                 TextFormField(
                   controller: _valorController,
                   keyboardType:
@@ -385,12 +303,12 @@ class _EditarGastoScreen extends State<EditarGasto> {
 
                 const SizedBox(height: 20),
 
-                /// ------ Frequência ------
+                /// ------ Frequência (Repetição) ------
                 const Text("Frequência *"),
                 RadioListTile<String>(
                   title: const Text('Sem repetição'),
                   value: '1',
-                  groupValue: _frequenciaSelecionada ?? '1',
+                  groupValue: _frequenciaSelecionada,
                   onChanged: (value) {
                     setState(() => _frequenciaSelecionada = value);
                   },
@@ -398,7 +316,7 @@ class _EditarGastoScreen extends State<EditarGasto> {
                 RadioListTile<String>(
                   title: const Text('Mensal'),
                   value: '2',
-                  groupValue: _frequenciaSelecionada ?? '1',
+                  groupValue: _frequenciaSelecionada,
                   onChanged: (value) {
                     setState(() => _frequenciaSelecionada = value);
                   },
@@ -406,7 +324,7 @@ class _EditarGastoScreen extends State<EditarGasto> {
                 RadioListTile<String>(
                   title: const Text('Semanal'),
                   value: '3',
-                  groupValue: _frequenciaSelecionada ?? '1',
+                  groupValue: _frequenciaSelecionada,
                   onChanged: (value) {
                     setState(() => _frequenciaSelecionada = value);
                   },
@@ -414,7 +332,7 @@ class _EditarGastoScreen extends State<EditarGasto> {
                 RadioListTile<String>(
                   title: const Text('Diário'),
                   value: '4',
-                  groupValue: _frequenciaSelecionada ?? '1',
+                  groupValue: _frequenciaSelecionada,
                   onChanged: (value) {
                     setState(() => _frequenciaSelecionada = value);
                   },
@@ -422,46 +340,15 @@ class _EditarGastoScreen extends State<EditarGasto> {
                 RadioListTile<String>(
                   title: const Text('Personalizada'),
                   value: '5',
-                  groupValue: _frequenciaSelecionada ?? '1',
+                  groupValue: _frequenciaSelecionada,
                   onChanged: (value) {
                     setState(() => _frequenciaSelecionada = value);
                   },
                 ),
 
                 const SizedBox(height: 20),
-
-                /// ------ Data de início ------
-                const Text("Data de início *"),
-                TextFormField(
-                  controller: _dataInicioController,
-                  readOnly: true, // Necessário para o onTap
-                  onTap: () => _selecionarData(context, _dataInicioController), // Chama o calendário
-                  keyboardType: TextInputType.datetime,
-                  decoration: const InputDecoration(
-                    labelText: 'Data',
-                    prefixIcon: Icon(Icons.calendar_today),
-                    hintText: 'Ex: 13/11/2025',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Informe uma data';
-                    }
-
-                    // Expressão regular para validar formato dd/mm/aaaa
-                    final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
-                    if (!regex.hasMatch(value)) {
-                      return 'Use o formato dd/mm/aaaa';
-                    }
-
-                    return null;
-                  },
-                ),
-
-
-                const SizedBox(height: 20),
                 
-                /// --- Campo para o IntervaloDias (x_dias) ---
+                // Campo Intervalo de Dias
                 if (_frequenciaSelecionada == '4' || _frequenciaSelecionada == '5')
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
@@ -479,6 +366,33 @@ class _EditarGastoScreen extends State<EditarGasto> {
                     ],
                   ),
                 ),
+
+                /// ------ Data de início ------
+                const Text("Data de início *"),
+                TextFormField(
+                  controller: _dataInicioController,
+                  readOnly: true, 
+                  onTap: () => _selecionarData(context, _dataInicioController), 
+                  keyboardType: TextInputType.datetime,
+                  decoration: const InputDecoration(
+                    labelText: 'Data',
+                    prefixIcon: Icon(Icons.calendar_today),
+                    hintText: 'Ex: 13/11/2025',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Informe uma data';
+                    }
+                    final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
+                    if (!regex.hasMatch(value)) {
+                      return 'Use o formato dd/mm/aaaa';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
 
                 /// ------ Parcelas / Data Final ------
                 Column(
@@ -510,8 +424,8 @@ class _EditarGastoScreen extends State<EditarGasto> {
                     if (_opcaoSelecionada == 2)
                     TextFormField(
                       controller: _dataFinalController,
-                      readOnly: true, // Necessário para o onTap
-                      onTap: () => _selecionarData(context, _dataFinalController), // Chama o calendário
+                      readOnly: true, 
+                      onTap: () => _selecionarData(context, _dataFinalController), 
                       keyboardType: TextInputType.datetime,
                       decoration: const InputDecoration(
                         labelText: 'Data final',
@@ -523,8 +437,6 @@ class _EditarGastoScreen extends State<EditarGasto> {
                         if (value == null || value.isEmpty) {
                           return 'Informe uma data final';
                         }
-                        
-                        // Validação de formato (simplificada)
                         final regex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
                         if (!regex.hasMatch(value)) {
                           return 'Use o formato dd/mm/aaaa';
@@ -536,8 +448,28 @@ class _EditarGastoScreen extends State<EditarGasto> {
                 ),
 
                 const SizedBox(height: 20),
+                
+                /// ------ Ganho Destinado à Poupança? ------
+                const Text("Ganho destinado à poupança?"),
+                RadioListTile<String>(
+                  title: const Text('Sim'),
+                  value: '1',
+                  groupValue: _ganhoParaPoupanca,
+                  onChanged: (value) {
+                    setState(() => _ganhoParaPoupanca = value);
+                  },
+                ),
+                RadioListTile<String>(
+                  title: const Text('Não'),
+                  value: '0',
+                  groupValue: _ganhoParaPoupanca,
+                  onChanged: (value) {
+                    setState(() => _ganhoParaPoupanca = value);
+                  },
+                ),
+                const SizedBox(height: 20),
 
-                /// ------ Juros ------
+                /// ------ Juros (CAMPO ÚNICO) ------
                 const Text("Juros"),
                 TextFormField(
                   controller: _jurosController,
@@ -546,29 +478,12 @@ class _EditarGastoScreen extends State<EditarGasto> {
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
                   ],
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Ex: 0.50',
+                  ),
                 ),
-
-                const SizedBox(height: 20),
-
-                /// ------ Tipo de juros ------
-                const Text("Tipo de juros"),
-                RadioListTile<String>(
-                  title: const Text('Simples'),
-                  value: '0',
-                  groupValue: _tipoJuros,
-                  onChanged: (value) {
-                    setState(() => _tipoJuros = value);
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Composto'),
-                  value: '1',
-                  groupValue: _tipoJuros,
-                  onChanged: (value) {
-                    setState(() => _tipoJuros = value);
-                  },
-                ),
-
+                // --- O BLOCO 'Tipo de juros' FOI REMOVIDO AQUI ---
                 const SizedBox(height: 30),
 
                 /// ------ Botão Salvar ------
@@ -576,8 +491,8 @@ class _EditarGastoScreen extends State<EditarGasto> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: _salvarAlteracoes, // <--- CHAMA A FUNÇÃO DE EDIÇÃO
-                      child: const Text('Salvar'), // <--- TEXTO ALTERADO
+                      onPressed: _salvarAlteracoes,
+                      child: const Text('Salvar'),
                     ),
                   ],
                 )
